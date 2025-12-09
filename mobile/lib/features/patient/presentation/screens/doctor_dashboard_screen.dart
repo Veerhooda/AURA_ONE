@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/a_app_bar.dart';
+import '../../../../core/widgets/aura_app_bar.dart';
 import '../../../../services/api_service.dart';
 
 class DoctorDashboardScreen extends StatelessWidget {
@@ -12,7 +12,7 @@ class DoctorDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AAppBar(title: "Doctor's Station"),
+      appBar: const AuraAppBar(title: "Doctor's Station"),
       body: FutureBuilder<List<dynamic>>(
         future: ApiService().getPatients(),
         builder: (context, snapshot) {

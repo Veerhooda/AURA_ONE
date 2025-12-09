@@ -3,9 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/a_app_bar.dart';
-import '../../../../core/widgets/a_fab.dart';
-import '../../../../core/widgets/a_tab_bar.dart';
+import '../../../../core/widgets/aura_app_bar.dart';
+import '../../../../core/widgets/aura_fab.dart';
+import '../../../../core/widgets/aura_navigation_bar.dart';
 import '../../../../services/api_service.dart';
 import '../widgets/digital_twin_card.dart';
 import '../widgets/vitals_summary_card.dart';
@@ -33,7 +33,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true, // Allow body to extend behind standard navbar area
-      appBar: const AAppBar(
+      appBar: const AuraAppBar(
         title: "My Digital Twin",
         actions: [
           Padding(
@@ -155,7 +155,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               // Bottom Navigation
               Align(
                 alignment: Alignment.bottomCenter,
-                child: ATabBar(
+                child: AuraNavigationBar(
                   currentIndex: _currentIndex,
                   onTap: (index) {
                     setState(() => _currentIndex = index);
@@ -169,7 +169,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           );
         }
       ),
-      floatingActionButton: AFAB(
+      floatingActionButton: AuraFAB(
         onPressed: () => context.push('/chat'),
         icon: CupertinoIcons.chat_bubble_text_fill,
         label: "AI Assistant",

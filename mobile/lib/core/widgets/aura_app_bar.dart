@@ -1,18 +1,19 @@
+```dart
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
-class AAppBar extends StatelessWidget implements PreferredSizeWidget {
+class AuraAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
-  final bool centerTitle;
+  final bool showBack;
 
-  const AAppBar({
+  const AuraAppBar({
     super.key,
     required this.title,
     this.actions,
-    this.centerTitle = true,
+    this.showBack = true,
   });
 
   @override

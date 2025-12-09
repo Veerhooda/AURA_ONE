@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../theme/app_colors.dart';
 
-class ATabBar extends StatelessWidget {
+class AuraNavigationBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
 
-  const ATabBar({
+  const AuraNavigationBar({
     super.key,
     required this.currentIndex,
     required this.onTap,

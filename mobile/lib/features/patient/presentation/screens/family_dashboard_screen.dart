@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/a_app_bar.dart';
+import '../../../../core/widgets/aura_app_bar.dart';
 
 class FamilyDashboardScreen extends StatelessWidget {
   const FamilyDashboardScreen({super.key});
@@ -31,7 +31,7 @@ class FamilyDashboardScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: const AAppBar(title: "Family Guardian"),
+      appBar: const AuraAppBar(title: "Family Guardian"),
       body: ListView.separated(
         padding: const EdgeInsets.all(20),
         itemCount: myPatients.length,

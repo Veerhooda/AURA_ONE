@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/a_app_bar.dart';
-import '../../../../core/widgets/a_fab.dart';
+import '../../../../core/widgets/aura_app_bar.dart';
+import '../../../../core/widgets/aura_fab.dart';
 
 class MedicationScreen extends StatefulWidget {
   const MedicationScreen({super.key});
@@ -113,7 +113,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AAppBar(title: "Medi-Space"),
+      appBar: const AuraAppBar(title: "Medi-Space"),
       body: ListView.separated(
         padding: const EdgeInsets.all(20),
         itemCount: _medications.length,
@@ -179,7 +179,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
           );
         },
       ),
-      floatingActionButton: AFAB(
+      floatingActionButton: AuraFAB(
         onPressed: _scanMedication,
         icon: CupertinoIcons.add,
         label: "Add Med",

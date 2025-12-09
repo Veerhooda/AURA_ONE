@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/a_app_bar.dart';
+import '../../../../core/widgets/aura_app_bar.dart';
 // Note: In real implementation, we would call ApiService.processVoice
 // For now, we simulate the interaction here or use the mock logic
 
@@ -57,7 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AAppBar(title: "AURA Assistant"),
+      appBar: const AuraAppBar(title: "AURA Assistant"),
       body: Column(
         children: [
           Expanded(

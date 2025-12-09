@@ -3,14 +3,14 @@ import 'package:flutter/cupertino.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
-class AFAB extends StatelessWidget {
+class AuraFAB extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData icon;
   final String? label;
   final bool isLoading;
   final Color? backgroundColor;
 
-  const AFAB({
+  const AuraFAB({
     super.key,
     required this.onPressed,
     this.icon = CupertinoIcons.mic, // Default to mic for backward compat if needed, but usually explicit
