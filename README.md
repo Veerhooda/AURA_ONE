@@ -59,15 +59,16 @@ docker-compose up -d
 
 ### 2. Backend Server
 
-The server coordinates everything.
+The server coordinates everything on **Port 3001**.
 
 ```bash
 cd server
 npm install
+npx prisma generate
 npm run start
 ```
 
-- _Note_: The server IP (e.g., `172.20.10.3`) is needed for the apps to connect.
+- _Note_: The server IP (e.g., `172.20.10.3` or `10.0.2.2` for Android emulator) is needed for the apps to connect.
 
 ### 3. Health Data Simulator (The "Medical Monitor")
 
@@ -78,7 +79,7 @@ cd health_data
 flutter run
 ```
 
-- **Usage**: Go to Settings -> Enter Server IP -> Connect -> Start Monitoring.
+- **Usage**: Go to Settings -> Enter Server IP (e.g., `http://10.0.2.2:3001`) -> Connect -> Start Monitoring.
 
 ### 4. Patient Dashboard (The "Receiver")
 
@@ -89,7 +90,7 @@ cd mobile
 flutter run
 ```
 
-- **Usage**: Log in -> View the "My Digital Twin" dashboard. The graphs will animate in sync with the simulator!
+- **Usage**: Log in -> View the "My Health Hub" dashboard. The **gradient-filled graphs** will animate in sync with the simulator!
 
 ### 5. Web Portal
 
@@ -105,6 +106,10 @@ npm run dev
 
 ## ✨ Key Features
 
-- **Real-time Vitals Sync**: Sub-second latency streaming of waveforms from Simulator -> Server -> Dashboard.
-- **Premium UI**: Glassmorphism aesthetic, "Outfit" typography, and animated Vitals Cards.
+- **Real-time Vitals Sync**: Sub-second latency streaming of waveforms from Simulator -> Server (Port 3001) -> Dashboard.
+- **Premium UI**:
+  - **Gradient Graphs**: Beautiful, medical-grade visualizations with fill and glow effects.
+  - **Glassmorphism**: Modern cards with subtle depth and shadows.
+  - **Polished Typography**: Clean, legible hierarchy using the "Outfit" font family.
 - **Smart Navigation**: Percentage-based coordinate mapping for accurate indoor wayfinding.
+- **Digital Twin**: Live syncing of patient health state across devices.
