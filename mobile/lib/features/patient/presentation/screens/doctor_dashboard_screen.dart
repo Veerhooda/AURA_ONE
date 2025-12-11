@@ -86,36 +86,115 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                     return GestureDetector(
                       onTap: () => context.push('/doctor/monitor/$id'),
                       child: Container(
-                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isCritical ? AppColors.error.withOpacity(0.15) : Colors.black.withOpacity(0.1),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            )
+                          ],
                           border: Border.all(
-                            color: isCritical ? AppColors.error : AppColors.surfaceHighlight,
+                            color: isCritical ? AppColors.error.withOpacity(0.5) : AppColors.surfaceHighlight,
                             width: isCritical ? 2 : 1
                           ),
                         ),
-                        child: Row(
-                          children: [
-                             CircleAvatar(
-                               backgroundColor: isCritical ? AppColors.error.withOpacity(0.2) : AppColors.primary.withOpacity(0.2),
-                               child: Icon(
-                                 CupertinoIcons.person_fill, 
-                                 color: isCritical ? AppColors.error : AppColors.primary
-                               ),
-                             ),
-                             const SizedBox(width: 16),
-                             Expanded(
-                               child: Column(
-                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                 children: [
-                                   Text(name, style: AppTypography.titleMedium),
-                                   Text("ID: #$id • $ward", style: AppTypography.bodyMedium),
-                                 ],
-                               ),
-                             ),
-                             const Icon(CupertinoIcons.chevron_right, color: AppColors.textSecondary)
-                          ],
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Stack(
+                            children: [
+                              // Subtle background pulse for critical
+                              if (isCritical)
+                                Positioned(
+                                  right: -20,
+                                  top: -20,
+                                  child: Container(
+                                    width: 100,
+                                    height: 100,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.error.withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                      boxShadow: [BoxShadow(color: AppColors.error.withOpacity(0.2), blurRadius: 40)]
+                                    ),
+                                  ),
+                                ),
+                                
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                         Container(
+                                           padding: const EdgeInsets.all(12),
+                                           decoration: BoxDecoration(
+                                             color: isCritical ? AppColors.error.withOpacity(0.1) : AppColors.primary.withOpacity(0.1),
+                                             shape: BoxShape.circle
+                                           ),
+                                           child: Icon(
+                                             isCritical ? CupertinoIcons.exclamationmark_triangle_fill : CupertinoIcons.person_fill, 
+                                             color: isCritical ? AppColors.error : AppColors.primary,
+                                             size: 24,
+                                           ),
+                                         ),
+                                         const SizedBox(width: 16),
+                                         Expanded(
+                                           child: Column(
+                                             crossAxisAlignment: CrossAxisAlignment.start,
+                                             children: [
+                                               Text(name, style: AppTypography.titleMedium.copyWith(fontSize: 18)),
+                                               const SizedBox(height: 4),
+                                               Row(
+                                                 children: [
+                                                   Icon(CupertinoIcons.bed_double_fill, size: 14, color: AppColors.textSecondary),
+                                                   const SizedBox(width: 4),
+                                                   Text("Ward: $ward", style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary, fontSize: 13)),
+                                                   const SizedBox(width: 12),
+                                                   Icon(CupertinoIcons.number, size: 14, color: AppColors.textSecondary),
+                                                   const SizedBox(width: 4),
+                                                   Text("ID: $id", style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary, fontSize: 13)),
+                                                 ],
+                                               ),
+                                             ],
+                                           ),
+                                         ),
+                                         Container(
+                                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                           decoration: BoxDecoration(
+                                             color: isCritical ? AppColors.error : AppColors.success,
+                                             borderRadius: BorderRadius.circular(20)
+                                           ),
+                                           child: Text(
+                                             isCritical ? "CRITICAL" : "STABLE",
+                                             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
+                                           ),
+                                         )
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    // Mini Vitals Preview (Fake data for list view)
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.background,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                        children: [
+                                          _buildMiniVital(CupertinoIcons.heart_fill, isCritical ? "120" : "72", "bpm", AppColors.error),
+                                          Container(height: 20, width: 1, color: AppColors.surfaceHighlight),
+                                          _buildMiniVital(CupertinoIcons.drop_fill, "98", "%", AppColors.info),
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -126,6 +205,17 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           ),
         ],
       ),
+    );
+  }
+  Widget _buildMiniVital(IconData icon, String value, String unit, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Text(value, style: AppTypography.titleMedium.copyWith(fontSize: 16)),
+        const SizedBox(width: 4),
+        Text(unit, style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
+      ],
     );
   }
 }

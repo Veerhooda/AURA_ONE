@@ -241,11 +241,11 @@ class _MonitorScreenState extends State<MonitorScreen> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
+          style: GoogleFonts.shareTechMono(
             color: color,
-            fontSize: 42,
-            fontFamily: 'Courier', // Monospace for digital look
-            fontWeight: FontWeight.w900,
+            fontSize: 48,
+            fontWeight: FontWeight.bold,
+            shadows: [Shadow(color: color.withOpacity(0.5), blurRadius: 10)]
           ),
         ),
         Text(unit, style: const TextStyle(color: Colors.grey, fontSize: 12)),
@@ -265,8 +265,8 @@ class _MonitorScreenState extends State<MonitorScreen> {
                gridData: FlGridData(
                  show: true, 
                  drawVerticalLine: true,
-                 getDrawingHorizontalLine: (value) => const FlLine(color: Colors.white10, strokeWidth: 1),
-                 getDrawingVerticalLine: (value) => const FlLine(color: Colors.white10, strokeWidth: 1),
+                 getDrawingHorizontalLine: (value) => FlLine(color: const Color(0xFF00FF9D).withOpacity(0.1), strokeWidth: 1),
+                 getDrawingVerticalLine: (value) => FlLine(color: const Color(0xFF00FF9D).withOpacity(0.1), strokeWidth: 1),
                ),
                titlesData: const FlTitlesData(show: false),
                borderData: FlBorderData(show: true, border: Border.all(color: Colors.white12)),
