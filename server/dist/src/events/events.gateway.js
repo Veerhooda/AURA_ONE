@@ -40,22 +40,39 @@ let EventsGateway = class EventsGateway {
         return { event: 'unsubscribed', data: { room } };
     }
     async handleSimulateVitals(client, data) {
-        if (data && data.patientId) {
-            this.server.to(`patient_${data.patientId}`).emit('vitals.update', data);
+        let patientId = data.patientId;
+        if (!patientId && data.email) {
+            const patient = await this.prisma.patient.findFirst({
+                where: { user: { email: data.email } },
+            });
+            if (patient) {
+                patientId = patient.id;
+            }
+        }
+        if (patientId) {
+            data.patientId = patientId;
+            this.server.to(`patient_${patientId}`).emit('vitals.update', data);
             const now = Date.now();
-            const last = this.lastUpdate.get(data.patientId) || 0;
+            const last = this.lastUpdate.get(patientId) || 0;
             if (now - last > 5000) {
-                this.lastUpdate.set(data.patientId, now);
+                this.lastUpdate.set(patientId, now);
                 try {
                     await this.prisma.patient.update({
-                        where: { id: parseInt(data.patientId) },
+                        where: { id: parseInt(patientId) },
                         data: { latestVitals: data }
                     });
                 }
                 catch (e) {
-                    console.error(`Failed to persist vitals snapshot for patient ${data.patientId}`, e);
+                    console.error(`Failed to persist vitals snapshot for patient ${patientId}`, e);
                 }
             }
+        }
+    }
+    handlePatientEmergency(client, data) {
+        console.log(`[EMERGENCY] Received alert for Patient ${data.patientId}:`, data);
+        if (data && data.patientId) {
+            this.server.to(`patient_${data.patientId}`).emit('patient.emergency', data);
+            console.log(`[EMERGENCY] Broadcasted to room patient_${data.patientId}`);
         }
     }
 };
@@ -82,6 +99,12 @@ __decorate([
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
     __metadata("design:returntype", Promise)
 ], EventsGateway.prototype, "handleSimulateVitals", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('patient.emergency'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", void 0)
+], EventsGateway.prototype, "handlePatientEmergency", null);
 exports.EventsGateway = EventsGateway = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {

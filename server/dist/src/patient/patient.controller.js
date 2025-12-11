@@ -32,6 +32,9 @@ let PatientController = class PatientController {
     reportPain(id, level) {
         return this.patientService.reportPain(id, level);
     }
+    updateProfile(req, data) {
+        return this.patientService.updateProfileByUserId(req.user.userId, data);
+    }
 };
 exports.PatientController = PatientController;
 __decorate([
@@ -65,6 +68,15 @@ __decorate([
     __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", void 0)
 ], PatientController.prototype, "reportPain", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)('profile'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], PatientController.prototype, "updateProfile", null);
 exports.PatientController = PatientController = __decorate([
     (0, common_1.Controller)('patients'),
     __metadata("design:paramtypes", [patient_service_1.PatientService])

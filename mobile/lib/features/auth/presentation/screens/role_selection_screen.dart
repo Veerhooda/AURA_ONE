@@ -73,6 +73,7 @@ class RoleSelectionScreen extends StatelessWidget {
                     route: '/login',
                     role: 'FAMILY',
                   ),
+                  const Spacer(),
                 ],
               ),
             ),

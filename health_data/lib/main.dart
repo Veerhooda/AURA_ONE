@@ -42,6 +42,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
   final _simulationService = SimulationService();
   final _socketService = SocketService();
   final _ipController = TextEditingController(text: '10.0.2.2'); // Android Emulator Host IP
+  final _emailController = TextEditingController();
   
   StreamSubscription? _subscription;
   bool _isSimulating = false;
@@ -75,8 +76,13 @@ class _MonitorScreenState extends State<MonitorScreen> {
         _updateData(data);
         // Send to Server
         if (_socketService.isConnected) {
-          // Add patientId to payload
-          data['patientId'] = 1; // Simulation ID
+          // Add email to payload for backend lookup
+          if (_emailController.text.isNotEmpty) {
+             data['email'] = _emailController.text;
+          }
+          // Remove hardcoded ID if we want to rely on email, or keep it as fallback?
+          // The backend uses email if patientId is missing.
+          // data['patientId'] = 1; 
           _socketService.emitData(data);
         }
       });
@@ -109,6 +115,26 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
   void _connect() {
     _socketService.connect(_ipController.text);
+  }
+
+  void _triggerEmergency() {
+    if (!_socketService.isConnected) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Not connected to server!"), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    
+    _socketService.emit('patient.emergency', {
+      'patientId': 1,
+      'room': '302',
+      'type': 'CRITICAL_VITALS',
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("EMERGENCY SIGNAL SENT!"), backgroundColor: Colors.red),
+    );
   }
 
   @override
@@ -174,6 +200,35 @@ class _MonitorScreenState extends State<MonitorScreen> {
               ),
             ),
           ),
+          
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: SizedBox(
+              height: 56,
+              child: ElevatedButton(
+                onPressed: _triggerEmergency,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF5252), // Red Accent
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 8,
+                  shadowColor: Colors.redAccent.withOpacity(0.5),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.warning_amber_rounded, size: 28),
+                    SizedBox(width: 12),
+                    Text(
+                      "TRIGGER EMERGENCY",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -241,10 +296,21 @@ class _MonitorScreenState extends State<MonitorScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Connection Settings"),
-        content: TextField(
-          controller: _ipController,
-          decoration: const InputDecoration(labelText: "Server IP Address"),
-          keyboardType: TextInputType.number,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _ipController,
+              decoration: const InputDecoration(labelText: "Server IP Address"),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: "Patient Email"),
+              keyboardType: TextInputType.emailAddress,
+            ),
+          ],
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
@@ -253,7 +319,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
               _connect();
               Navigator.pop(context);
             },
-            child: const Text("Connect"),
+            child: const Text("Save & Connect"),
           ),
         ],
       ),

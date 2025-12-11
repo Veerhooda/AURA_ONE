@@ -29,6 +29,12 @@ class SocketService {
       _socket!.emit('simulate_vitals', data);
     }
   }
+
+  void emit(String event, Map<String, dynamic> data) {
+    if (_socket != null && _socket!.connected) {
+      _socket!.emit(event, data);
+    }
+  }
   
   void dispose() {
     _socket?.dispose();

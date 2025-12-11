@@ -52,29 +52,51 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
 
   @SubscribeMessage('simulate_vitals')
   async handleSimulateVitals(client: Socket, data: any) {
+    let patientId = data.patientId;
+
+    // Resolve patient by Email if provided
+    if (!patientId && data.email) {
+      const patient = await this.prisma.patient.findFirst({
+        where: { user: { email: data.email } },
+      });
+      if (patient) {
+        patientId = patient.id;
+      }
+    }
+
     // 1. Broadcast to room immediately for live view
-    // Ensure we broadcast to the room corresponding to the patient ID in the data
-    if (data && data.patientId) {
-        this.server.to(`patient_${data.patientId}`).emit('vitals.update', data);
+    if (patientId) {
+        // Inject the resolved ID back into data so clients know
+        data.patientId = patientId; 
+        
+        this.server.to(`patient_${patientId}`).emit('vitals.update', data);
 
         // 2. Persist to DB (Throttled: e.g. every 5 seconds)
         const now = Date.now();
-        const last = this.lastUpdate.get(data.patientId) || 0;
+        const last = this.lastUpdate.get(patientId) || 0;
         
         // Save snapshot every 5 seconds to keep "latest known state" fresh in DB
         if (now - last > 5000) {
-            this.lastUpdate.set(data.patientId, now);
+            this.lastUpdate.set(patientId, now);
             try {
-                // We use updateMany or simple update. Since we have ID, update is fine.
-                // We store the whole data object as 'latestVitals' (JSON)
                 await this.prisma.patient.update({
-                    where: { id: parseInt(data.patientId) },
+                    where: { id: parseInt(patientId) },
                     data: { latestVitals: data }
                 });
             } catch (e) {
-                console.error(`Failed to persist vitals snapshot for patient ${data.patientId}`, e);
+                console.error(`Failed to persist vitals snapshot for patient ${patientId}`, e);
             }
         }
+    }
+  }
+  @SubscribeMessage('patient.emergency')
+  handlePatientEmergency(client: Socket, data: any) {
+    console.log(`[EMERGENCY] Received alert for Patient ${data.patientId}:`, data);
+    
+    // Broadcast to the specific patient room so subscribed doctors/family get it
+    if (data && data.patientId) {
+      this.server.to(`patient_${data.patientId}`).emit('patient.emergency', data);
+      console.log(`[EMERGENCY] Broadcasted to room patient_${data.patientId}`);
     }
   }
 }

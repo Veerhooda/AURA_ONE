@@ -7,8 +7,10 @@ class SocketService {
 
   IO.Socket? _socket;
   final _vitalsController = StreamController<Map<String, dynamic>>.broadcast();
+  final _emergencyController = StreamController<Map<String, dynamic>>.broadcast();
 
   Stream<Map<String, dynamic>> get vitalsStream => _vitalsController.stream;
+  Stream<Map<String, dynamic>> get emergencyStream => _emergencyController.stream;
 
   SocketService._internal();
 
@@ -38,6 +40,13 @@ class SocketService {
       }
     });
 
+    _socket!.on('patient.emergency', (data) {
+      print("EMERGENCY RECEIVED: $data");
+      if (data != null) {
+        _emergencyController.add(Map<String, dynamic>.from(data));
+      }
+    });
+
     _socket!.connect();
   }
 
@@ -52,5 +61,6 @@ class SocketService {
   void dispose() {
     _socket?.dispose();
     _vitalsController.close();
+    _emergencyController.close();
   }
 }

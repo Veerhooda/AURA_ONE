@@ -24,21 +24,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       setState(() => _isLoading = true);
       
       try {
-        // Real API Call
-        await ApiService().login(
+        final data = await ApiService().login(
           _emailController.text.trim(), 
           _passwordController.text.trim()
         );
         
         if (mounted) {
-          setState(() => _isLoading = false);
-          // Route based on passed Role
-          if (widget.role == 'DOCTOR') {
+          setState(() => _isLoading = false); 
+          
+          final userRole = data['user'] != null ? data['user']['role'] : null;
+          
+          if (userRole == 'PATIENT') {
+             // Check if profile is complete (defaults to true if key missing)
+             final bool isComplete = data['isProfileComplete'] ?? true;
+             
+             if (!isComplete) {
+               context.go('/update-profile');
+             } else {
+               context.go('/patient/home');
+             }
+          } else if (userRole == 'DOCTOR') { 
              context.go('/doctor/home');
-          } else if (widget.role == 'FAMILY') {
+          } else if (userRole == 'FAMILY') { 
              context.go('/family/home'); 
           } else {
-             context.go('/patient/home');
+             // Fallback or error if role is unexpected
+             ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(
+                 content: Text('Login Failed: Unknown role received ($userRole).'),
+                 backgroundColor: AppColors.error,
+                 behavior: SnackBarBehavior.floating,
+               )
+             );
           }
         }
       } catch (e) {
@@ -117,6 +134,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     )
                   : Text('Sign In', style: AppTypography.titleMedium.copyWith(color: Colors.black)),
               ),
+              const SizedBox(height: 24),
+              if (widget.role == 'PATIENT')
+                Center(
+                  child: TextButton(
+                    onPressed: () => context.push('/signup'),
+                    child: RichText(
+                      text: TextSpan(
+                        text: "New to AURA? ",
+                        style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+                        children: [
+                          TextSpan(
+                            text: "Create Account",
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: AppColors.primary, 
+                              fontWeight: FontWeight.bold
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

@@ -78,7 +78,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                   itemBuilder: (context, index) {
                     final p = patients[index];
                     final id = p['id'] ?? 0;
-                    final name = p['name'] ?? 'Unknown Patient';
+                    final name = p['user']?['name'] ?? 'Unknown Patient';
                     final ward = p['ward'] ?? 'General'; 
                     final risk = (p['risk_score'] ?? 0).toDouble(); 
                     final isCritical = risk > 70;

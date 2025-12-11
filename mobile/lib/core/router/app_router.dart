@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/screens/role_selection_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/patient/presentation/screens/patient_home_screen.dart';
+import '../../features/patient/presentation/screens/update_profile_screen.dart';
 import '../../features/patient/presentation/screens/accessibility_mode_screen.dart';
 import '../../features/navigation/presentation/screens/navigation_map_screen.dart';
 import '../../features/patient/presentation/screens/doctor_dashboard_screen.dart';
@@ -32,6 +34,14 @@ final appRouter = GoRouter(
           },
         );
       },
+    ),
+    GoRoute(
+      path: '/signup',
+      builder: (context, state) => const SignUpScreen(),
+    ),
+    GoRoute(
+      path: '/update-profile',
+      builder: (context, state) => const UpdateProfileScreen(),
     ),
     GoRoute(
       path: '/family/home',

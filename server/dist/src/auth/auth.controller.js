@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
-const client_1 = require("@prisma/client");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;

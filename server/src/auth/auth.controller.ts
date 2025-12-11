@@ -17,7 +17,7 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() createUserDto: Prisma.UserCreateInput) {
+  async register(@Body() createUserDto: any) {
     return this.authService.register(createUserDto);
   }
 }

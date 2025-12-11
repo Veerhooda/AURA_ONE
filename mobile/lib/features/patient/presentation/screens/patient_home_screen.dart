@@ -17,13 +17,32 @@ class PatientHomeScreen extends StatefulWidget {
 
 class _PatientHomeScreenState extends State<PatientHomeScreen> {
   int _currentIndex = 0;
+  String _mrn = "";
+  String _greeting = "My Health Hub";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final name = await ApiService().getUserName();
+    final mrn = await ApiService().getPatientMRN();
+    if (mounted) {
+       setState(() {
+         if (name != null) _greeting = "Hi, $name";
+         if (mrn != null) _mrn = mrn;
+       });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      appBar: const AuraAppBar(
-        title: "My Health Hub",
+      appBar: AuraAppBar(
+        title: _greeting,
         actions: [
           Padding(
             padding: EdgeInsets.only(right: 16.0),
@@ -56,6 +75,13 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (_mrn.isNotEmpty) ...[
+                        Text(
+                          "Patient ID: $_mrn", 
+                          style: AppTypography.bodyLarge.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       // --- 1. HOSPITAL STATUS CARD ---
                       Container(
                         padding: const EdgeInsets.all(24),

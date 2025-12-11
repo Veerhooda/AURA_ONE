@@ -81,6 +81,35 @@ let PatientService = class PatientService {
             }
         });
     }
+    async updateProfileByUserId(userId, data) {
+        const existing = await this.prisma.patient.findFirst({ where: { userId } });
+        if (existing) {
+            return this.prisma.patient.update({
+                where: { id: existing.id },
+                data: {
+                    weight: data.weight,
+                    status: data.status,
+                    symptoms: data.symptoms,
+                    mrn: existing.mrn || `MRN-${Date.now()}`
+                }
+            });
+        }
+        else {
+            return this.prisma.patient.create({
+                data: {
+                    userId,
+                    mrn: `MRN-${Date.now().toString().substring(6)}`,
+                    dob: new Date('1990-01-01'),
+                    gender: 'Unknown',
+                    weight: data.weight || '70 kg',
+                    status: data.status || 'Admitted',
+                    symptoms: data.symptoms || 'None recorded',
+                    bed: 'Unassigned',
+                    ward: 'General',
+                }
+            });
+        }
+    }
 };
 exports.PatientService = PatientService;
 exports.PatientService = PatientService = __decorate([

@@ -25,10 +25,12 @@ const common_1 = require("@nestjs/common");
 const users_service_1 = require("../users/users.service");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = require("bcrypt");
+const prisma_service_1 = require("../prisma/prisma.service");
 let AuthService = class AuthService {
-    constructor(usersService, jwtService) {
+    constructor(usersService, jwtService, prisma) {
         this.usersService = usersService;
         this.jwtService = jwtService;
+        this.prisma = prisma;
     }
     async validateUser(email, pass) {
         const user = await this.usersService.findByEmail(email);
@@ -40,19 +42,72 @@ let AuthService = class AuthService {
     }
     async login(user) {
         const payload = { email: user.email, sub: user.id, role: user.role };
+        let isProfileComplete = true;
+        let patient = null;
+        if (user.role === 'PATIENT') {
+            patient = await this.prisma.patient.findFirst({ where: { userId: user.id } });
+            if (!patient || !patient.weight) {
+                isProfileComplete = false;
+            }
+        }
         return {
             access_token: this.jwtService.sign(payload),
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+            },
+            patient: patient,
+            isProfileComplete,
         };
     }
     async register(data) {
         const hashedPassword = await bcrypt.hash(data.password, 10);
-        return this.usersService.createUser(Object.assign(Object.assign({}, data), { password: hashedPassword }));
+        const { createHash } = await Promise.resolve().then(() => require('crypto'));
+        const hash = createHash('sha256')
+            .update(data.email + Date.now().toString())
+            .digest('hex');
+        const blockchainId = `0x${hash.substring(0, 40)}`;
+        let newUser;
+        try {
+            newUser = await this.usersService.createUser({
+                email: data.email,
+                password: hashedPassword,
+                name: data.name,
+                role: data.role,
+                blockchainId: blockchainId,
+            });
+        }
+        catch (error) {
+            if (error.code === 'P2002') {
+                throw new common_1.ConflictException('Email or Blockchain ID already exists');
+            }
+            throw error;
+        }
+        if (data.role === 'PATIENT') {
+            await this.prisma.patient.create({
+                data: {
+                    userId: newUser.id,
+                    mrn: `MRN-${Date.now().toString().substring(6)}`,
+                    dob: new Date('1990-01-01'),
+                    gender: 'Unknown',
+                    weight: data.weight || '70 kg',
+                    status: data.status || 'Admitted',
+                    symptoms: data.symptoms || 'None recorded',
+                    bed: 'Unassigned',
+                    ward: 'General',
+                }
+            });
+        }
+        return newUser;
     }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [users_service_1.UsersService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        prisma_service_1.PrismaService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

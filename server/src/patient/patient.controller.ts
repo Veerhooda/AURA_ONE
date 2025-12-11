@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, ParseIntPipe, Request } from '@nestjs/common';
 import { PatientService } from './patient.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -28,5 +28,10 @@ export class PatientController {
   @Post(':id/pain')
   reportPain(@Param('id', ParseIntPipe) id: number, @Body('level') level: number) {
       return this.patientService.reportPain(id, level);
+  }
+  @UseGuards(AuthGuard('jwt'))
+  @Post('profile')
+  updateProfile(@Request() req, @Body() data: any) {
+      return this.patientService.updateProfileByUserId(req.user.userId, data);
   }
 }

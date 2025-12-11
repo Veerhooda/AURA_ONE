@@ -20,6 +20,7 @@ model User {
   email     String   @unique
   password  String
   name      String
+  blockchainId String? @unique // Simulated Blockchain Wallet Address
   role      Role     @default(PATIENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -38,6 +39,11 @@ model Patient {
   ward      String?
   riskScore Float?   @default(0)
   diagnosis String?
+  
+  // New Registration Fields
+  weight    String?   // e.g. "75 kg"
+  status    String?   // e.g. "Admitted", "Critical"
+  symptoms  String?   // e.g. "Chest pain, dizziness"
   
   // Pain Management
   painLevel      Int?      // 0-10 Scale

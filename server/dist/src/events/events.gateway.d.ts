@@ -26,4 +26,5 @@ export declare class EventsGateway implements OnGatewayInit, OnGatewayConnection
         };
     };
     handleSimulateVitals(client: Socket, data: any): Promise<void>;
+    handlePatientEmergency(client: Socket, data: any): void;
 }
