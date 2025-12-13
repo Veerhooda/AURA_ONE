@@ -3,6 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { Users, AlertCircle, CheckCircle, Plus, Edit2, Trash2, X, Save, FileText, ClipboardList } from 'lucide-react';
 
+import { motion } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+};
+
 const DoctorDashboard = () => {
   const navigate = useNavigate();
   // Mock Data State
@@ -18,7 +35,25 @@ const DoctorDashboard = () => {
   // Form State
   const [formData, setFormData] = useState({ name: '', condition: '', room: '', status: 'Stable' });
 
+  // Notes Modal State
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const [activePatientId, setActivePatientId] = useState(null);
+  const [noteForm, setNoteForm] = useState({ subjective: '', objective: '', assessment: '', plan: '' });
+
   // Handlers
+  const handleOpenNotes = (patientId) => {
+    setActivePatientId(patientId);
+    setNoteForm({ subjective: '', objective: '', assessment: '', plan: '' });
+    setIsNotesModalOpen(true);
+  };
+
+  const handleSaveNotes = (e) => {
+    e.preventDefault();
+    console.log(`Saving notes for patient ${activePatientId}:`, noteForm);
+    // In a real app, this would be an API call
+    setIsNotesModalOpen(false);
+    alert('Notes saved successfully!');
+  };
   const handleAddNew = () => {
     setEditingId(null);
     setFormData({ name: '', condition: '', room: '', status: 'Stable' });
@@ -54,114 +89,174 @@ const DoctorDashboard = () => {
 
   return (
     <DashboardLayout role="doctor">
-      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Dr. Smith</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Shift: 08:00 - 16:00 • Ward A</p>
-        </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <StatBadge label="Total Patients" value={patients.length} icon={Users} color="var(--primary)" />
-          <StatBadge label="Critical" value={criticalCount} icon={AlertCircle} color="var(--danger)" />
-          <button 
-            onClick={handleAddNew}
-            className="btn-primary" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', height: 'fit-content', alignSelf: 'center' }}
-          >
-            <Plus size={18} /> Add Patient
-          </button>
-        </div>
-      </div>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
+        <motion.div variants={itemVariants} style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div>
+            <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Dr. Smith</h1>
+            <p style={{ color: 'var(--text-secondary)' }}>Shift: 08:00 - 16:00 • Ward A</p>
+          </div>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <StatBadge label="Total Patients" value={patients.length} icon={Users} color="var(--primary)" />
+            <StatBadge label="Critical" value={criticalCount} icon={AlertCircle} color="var(--danger)" />
+            <button 
+              onClick={handleAddNew}
+              className="btn-primary" 
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', height: 'fit-content', alignSelf: 'center' }}
+            >
+              <Plus size={18} /> Add Patient
+            </button>
+          </div>
+        </motion.div>
 
-      <div className="glass-panel" style={{ overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)' }}>
-              <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Patient Name</th>
-              <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>ID</th>
-              <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Condition</th>
-              <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Room</th>
-              <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Status</th>
-              <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600, textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {patients.map(patient => (
-              <PatientRow 
-                key={patient.id} 
-                patient={patient} 
-                onViewRecord={() => navigate(`/dashboard/doctor/record/${patient.id}`)}
-                onViewReport={() => navigate(`/dashboard/doctor/report/${patient.id}`)}
-                onEdit={() => handleEdit(patient)}
-                onDelete={() => handleDelete(patient.id)}
-              />
-            ))}
-            {patients.length === 0 && (
-              <tr>
-                <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                  No patients found. Add one to get started.
-                </td>
+        <motion.div className="glass-panel" style={{ overflow: 'hidden' }} variants={itemVariants}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)' }}>
+                <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Patient Name</th>
+                <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>ID</th>
+                <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Condition</th>
+                <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Room</th>
+                <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Status</th>
+                <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600, textAlign: 'right' }}>Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {patients.map(patient => (
+                <PatientRow 
+                  key={patient.id} 
+                  patient={patient} 
+                  onViewRecord={() => navigate(`/dashboard/doctor/record/${patient.id}`)}
+                  onViewRecord={() => navigate(`/dashboard/doctor/record/${patient.id}`)}
+                  onViewReport={() => handleOpenNotes(patient.id)}
+                  onEdit={() => handleEdit(patient)}
+                  onEdit={() => handleEdit(patient)}
+                  onDelete={() => handleDelete(patient.id)}
+                />
+              ))}
+              {patients.length === 0 && (
+                <tr>
+                  <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    No patients found. Add one to get started.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </motion.div>
 
-      {isModalOpen && (
-        <div style={{ 
-          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
-          background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' 
-        }}>
-          <div className="glass-panel" style={{ width: '400px', padding: '2rem', background: 'var(--bg-card)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>{editingId ? 'Edit Patient' : 'Add New Patient'}</h2>
-              <button onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}><X size={20} /></button>
-            </div>
-            
-            <form onSubmit={handleSave}>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Full Name</label>
-                <input 
-                  required
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
-                  value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
-                />
+        {isModalOpen && (
+          <div style={{ 
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
+            background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' 
+          }}>
+            <div className="glass-panel" style={{ width: '400px', padding: '2rem', background: 'var(--bg-card)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>{editingId ? 'Edit Patient' : 'Add New Patient'}</h2>
+                <button onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}><X size={20} /></button>
               </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Condition</label>
-                <input 
-                  required
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
-                  value={formData.condition} onChange={e => setFormData({...formData, condition: e.target.value})}
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Room</label>
+              
+              <form onSubmit={handleSave}>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Full Name</label>
                   <input 
                     required
                     style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
-                    value={formData.room} onChange={e => setFormData({...formData, room: e.target.value})}
+                    value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
                   />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Status</label>
-                  <select 
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Condition</label>
+                  <input 
+                    required
                     style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
-                    value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}
-                  >
-                    <option value="Stable">Stable</option>
-                    <option value="Critical">Critical</option>
-                    <option value="Recovering">Recovering</option>
-                  </select>
+                    value={formData.condition} onChange={e => setFormData({...formData, condition: e.target.value})}
+                  />
                 </div>
-              </div>
-              <button type="submit" className="btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
-                <Save size={18} /> Save Patient
-              </button>
-            </form>
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Room</label>
+                    <input 
+                      required
+                      style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+                      value={formData.room} onChange={e => setFormData({...formData, room: e.target.value})}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Status</label>
+                    <select 
+                      style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+                      value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}
+                    >
+                      <option value="Stable">Stable</option>
+                      <option value="Critical">Critical</option>
+                      <option value="Recovering">Recovering</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" className="btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                  <Save size={18} /> Save Patient
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {isNotesModalOpen && (
+          <div style={{ 
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
+            background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' 
+          }}>
+            <div className="glass-panel" style={{ width: '500px', padding: '2rem', background: 'var(--bg-card)', maxHeight: '90vh', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Doctor Notes <span style={{fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 400}}>(SOAP Format)</span></h2>
+                <button onClick={() => setIsNotesModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}><X size={20} /></button>
+              </div>
+              
+              <form onSubmit={handleSaveNotes}>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--primary)', fontWeight: 600 }}>Subjective</label>
+                  <textarea 
+                    placeholder="Patient's symptoms and complaints..."
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', minHeight: '80px', resize: 'vertical' }}
+                    value={noteForm.subjective} onChange={e => setNoteForm({...noteForm, subjective: e.target.value})}
+                  />
+                </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--secondary)', fontWeight: 600 }}>Objective</label>
+                  <textarea 
+                    placeholder="Objective observations (vitals, labs)..."
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', minHeight: '80px', resize: 'vertical' }}
+                    value={noteForm.objective} onChange={e => setNoteForm({...noteForm, objective: e.target.value})}
+                  />
+                </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--accent)', fontWeight: 600 }}>Assessment</label>
+                  <textarea 
+                    placeholder="Diagnosis and analysis..."
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', minHeight: '80px', resize: 'vertical' }}
+                    value={noteForm.assessment} onChange={e => setNoteForm({...noteForm, assessment: e.target.value})}
+                  />
+                </div>
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--danger)', fontWeight: 600 }}>Plan</label>
+                  <textarea 
+                    placeholder="Treatment plan and next steps..."
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', minHeight: '80px', resize: 'vertical' }}
+                    value={noteForm.plan} onChange={e => setNoteForm({...noteForm, plan: e.target.value})}
+                  />
+                </div>
+                <button type="submit" className="btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                  <Save size={18} /> Save Notes
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+      </motion.div>
     </DashboardLayout>
   );
 };

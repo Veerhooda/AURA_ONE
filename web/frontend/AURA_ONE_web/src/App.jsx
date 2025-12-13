@@ -1,5 +1,8 @@
+
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import PageTransition from './components/PageTransition';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -12,23 +15,25 @@ import FamilyDashboard from './pages/FamilyDashboard';
 import Settings from './pages/Settings';
 
 function App() {
+  const location = useLocation();
+
   return (
-    <Router>
-      <div className="app-container">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard/patient*" element={<PatientDashboard />} />
-          <Route path="/dashboard/doctor*" element={<DoctorDashboard />} />
-          <Route path="/dashboard/doctor/report/:id" element={<PatientReport />} />
-          <Route path="/dashboard/doctor/record/:id" element={<PatientRecord />} />
-          <Route path="/dashboard/doctor/vitals" element={<DoctorVitals />} />
-          <Route path="/dashboard/family*" element={<FamilyDashboard />} />
-          <Route path="/settings" element={<Settings />} />
+    <div className="app-container">
+      <Navbar />
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+          <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+          <Route path="/dashboard/patient*" element={<PageTransition><PatientDashboard /></PageTransition>} />
+          <Route path="/dashboard/doctor*" element={<PageTransition><DoctorDashboard /></PageTransition>} />
+          <Route path="/dashboard/doctor/report/:id" element={<PageTransition><PatientReport /></PageTransition>} />
+          <Route path="/dashboard/doctor/record/:id" element={<PageTransition><PatientRecord /></PageTransition>} />
+          <Route path="/dashboard/doctor/vitals" element={<PageTransition><DoctorVitals /></PageTransition>} />
+          <Route path="/dashboard/family*" element={<PageTransition><FamilyDashboard /></PageTransition>} />
+          <Route path="/settings" element={<PageTransition><Settings /></PageTransition>} />
         </Routes>
-      </div>
-    </Router>
+      </AnimatePresence>
+    </div>
   );
 }
 
