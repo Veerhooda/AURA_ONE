@@ -13,14 +13,5 @@ export declare class AuthController {
         patient: any;
         isProfileComplete: boolean;
     }>;
-    register(createUserDto: any): Promise<{
-        id: number;
-        email: string;
-        blockchainId: string | null;
-        password: string;
-        name: string;
-        role: import(".prisma/client").$Enums.Role;
-        createdAt: Date;
-        updatedAt: Date;
-    }>;
+    register(createUserDto: any): Promise<any>;
 }

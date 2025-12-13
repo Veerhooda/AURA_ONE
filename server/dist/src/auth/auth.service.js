@@ -65,10 +65,7 @@ let AuthService = class AuthService {
     async register(data) {
         const hashedPassword = await bcrypt.hash(data.password, 10);
         const { createHash } = await Promise.resolve().then(() => require('crypto'));
-        const hash = createHash('sha256')
-            .update(data.email + Date.now().toString())
-            .digest('hex');
-        const blockchainId = `0x${hash.substring(0, 40)}`;
+        const blockchainId = createHash('sha256').update(data.email + Date.now().toString()).digest('hex');
         let newUser;
         try {
             newUser = await this.usersService.createUser({
@@ -97,7 +94,7 @@ let AuthService = class AuthService {
                     symptoms: data.symptoms || 'None recorded',
                     bed: 'Unassigned',
                     ward: 'General',
-                }
+                },
             });
         }
         return newUser;

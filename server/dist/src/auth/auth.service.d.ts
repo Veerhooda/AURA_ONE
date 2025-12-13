@@ -1,6 +1,5 @@
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 export declare class AuthService {
     private usersService;
@@ -19,5 +18,5 @@ export declare class AuthService {
         patient: any;
         isProfileComplete: boolean;
     }>;
-    register(data: any): Promise<User>;
+    register(data: any): Promise<any>;
 }
