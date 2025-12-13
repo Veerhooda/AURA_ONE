@@ -32,10 +32,17 @@ The system consists of three connected applications:
     - **Role**: Simulates a medical vitals monitor.
     - **Features**: Generates realistic ECG (PQRST), SpO2 waveforms, and vital sign numbers; streams to server via WebSockets.
 
-4.  **`web/frontend/` (Web Portal)**
-    - **Tech**: React, Vite.
-    - **Role**: Administrative / Hospital Staff Dashboard (In Development).
-    - **Features**: Web-based access to patient data and hospital management tools.
+4.  **`web/` (Web Portal)**
+
+    - **Location**: `web/frontend/AURA_ONE_web`
+    - **Tech**: React 19, Vite, Tailwind-like CSS variables.
+    - **Role**: Administrative / Hospital Staff Dashboard.
+    - **Features**: Role-based access, Patient Reporting, and Glassmorphism UI.
+
+5.  **`Patient_Summary_Graph/` (AI Agent)**
+    - **Tech**: n8n, Groq (Llama 3), QuickChart.
+    - **Role**: Automated medical summary generation.
+    - **Features**: Analyzes patient history to produce text summaries and visual recovery trend graphs via Webhook.
 
 ---
 
@@ -43,10 +50,11 @@ The system consists of three connected applications:
 
 ### Project Structure
 
-- `backend/`: NestJS application (API, AI Gateway, Digital Twin)
+- `server/`: NestJS application (API, AI Gateway, Digital Twin)
 - `mobile/`: Flutter application (Android/iOS)
 - `health_data/`: Flutter application (Hardware Simulator)
 - `web/`: Web application (React/Vite Frontend)
+- `Patient_Summary_Graph/`: n8n Workflow & AI Logic
 - `docker-compose.yml`: Database infrastructure (PostgreSQL, Redis, TimescaleDB)
 
 ### 1. Database Infrastructure
