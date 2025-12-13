@@ -22,12 +22,7 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with SingleTi
   List<dynamic> _medications = [];
   bool _isLoading = true;
 
-  // Mock static data for elegance
-  final List<Map<String, String>> _history = [
-    {'date': '2023-11-15', 'type': 'Diagnosis', 'note': 'Hypertension detected. Prescribed Amlodipine.'},
-    {'date': '2023-10-02', 'type': 'Lab Result', 'note': 'Cholesterol levels elevated (240 mg/dL).'},
-    {'date': '2023-09-10', 'type': 'Visit', 'note': 'Regular checkup. Patient reported mild dizziness.'},
-  ];
+  List<Map<String, dynamic>> _history = [];
 
   final List<String> _symptoms = [
     "Shortness of breath",
@@ -46,18 +41,32 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with SingleTi
   }
 
   Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _history = []; // Clear previous history
+    });
+    
     try {
       final data = await ApiService().getPatientTwin(widget.patientId);
       final meds = await ApiService().getPatientMedications(widget.patientId);
+      final history = await ApiService().getPatientHistory(widget.patientId);
+      
       if (mounted) {
         setState(() {
           _patientData = data;
           _medications = meds;
+          _history = List<Map<String, dynamic>>.from(history);
           _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+      print('Error loading patient data: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _history = [];
+        });
+      }
     }
   }
 
@@ -77,16 +86,16 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with SingleTi
       );
     }
 
-    // Determine status (Mocking 'Admitted' logic if not in backend, or using what's there)
-    // For demo purposes, let's assume if ID is 1, they are admitted.
-    bool isAdmitted = widget.patientId == 1; // Logic as requested: Only show vitals if admitted
-    // Or check backend field: _patientData!['status'] == 'Admitted';
-    
-    String status = isAdmitted ? "Admitted" : "Discharged"; // Mocking for now to force the view for Patient 1
+    // Determine status from backend data
+    String status = _patientData!['status'] ?? "Discharged";
+    bool isAdmitted = status == "Admitted";
     Color statusColor = isAdmitted ? AppColors.error : AppColors.success;
+    
+    // Extract patient name from metadata
+    final patientName = _patientData!['metadata']?['name'] ?? "Unknown Patient";
 
     return Scaffold(
-      appBar: AuraAppBar(title: _patientData!['name'] ?? "Unknown Patient"),
+      appBar: AuraAppBar(title: patientName),
       body: RefreshIndicator(
         onRefresh: _loadData,
         child: NestedScrollView(
@@ -125,7 +134,126 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with SingleTi
     );
   }
 
-  Widget _buildHeader(String status, Color color) {
+  // --- ACTIONS ---
+
+  Future<void> _toggleStatus() async {
+    // Current simulated logic: if ID=1 it's admitted.
+    // New Logic: Toggle state locally + Backend Call
+    if (_patientData == null) return;
+    
+    // Check current status string or use our bool
+    bool currentAdmitted = _patientData!['status'] == 'Admitted'; 
+    String newStatus = currentAdmitted ? 'Discharged' : 'Admitted';
+    
+    try {
+      await ApiService().updatePatientStatus(widget.patientId, newStatus);
+      setState(() {
+         _patientData!['status'] = newStatus;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Patient $newStatus")));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to update status")));
+    }
+  }
+
+  void _showAddMedicationDialog() {
+    final nameCtrl = TextEditingController();
+    final dosageCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Prescribe Medication"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: "Medication Name")),
+            TextField(controller: dosageCtrl, decoration: const InputDecoration(labelText: "Dosage (e.g. 10mg)")),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameCtrl.text.isNotEmpty) {
+                try {
+                   await ApiService().addMedication(widget.patientId, nameCtrl.text, dosageCtrl.text);
+                   Navigator.pop(context);
+                   _loadData(); // Refresh list
+                } catch (e) {
+                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to add medication")));
+                }
+              }
+            }, 
+            child: const Text("Prescribe")
+          )
+        ],
+      )
+    );
+  }
+
+  void _showAddHistoryDialog() {
+    final titleCtrl = TextEditingController();
+    final noteCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Add Medical Note"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleCtrl, 
+              decoration: const InputDecoration(
+                labelText: "Title (e.g., Diagnosis, Lab Result)",
+                hintText: "Enter record type"
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: noteCtrl, 
+              decoration: const InputDecoration(
+                labelText: "Details",
+                hintText: "Enter medical observations"
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () async {
+              if (titleCtrl.text.isNotEmpty && noteCtrl.text.isNotEmpty) {
+                try {
+                   final fullNote = "${titleCtrl.text}: ${noteCtrl.text}";
+                   await ApiService().addHistory(widget.patientId, fullNote);
+                   Navigator.pop(context);
+                   // Reload data to get the updated history from backend
+                   _loadData();
+                   ScaffoldMessenger.of(context).showSnackBar(
+                     const SnackBar(
+                       content: Text("Medical note saved successfully"),
+                       backgroundColor: Colors.green,
+                     )
+                   );
+                } catch (e) {
+                   ScaffoldMessenger.of(context).showSnackBar(
+                     const SnackBar(content: Text("Failed to save note"))
+                   );
+                }
+              }
+            }, 
+            child: const Text("Save Record")
+          )
+        ],
+      )
+    );
+  }
+
+   Widget _buildHeader(String status, Color color) {
+    bool isAdmitted = status == 'Admitted';
+    
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -162,7 +290,7 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with SingleTi
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_patientData!['name'] ?? "Err", style: AppTypography.headlineMedium),
+                    Text(_patientData!['metadata']?['name'] ?? "Unknown", style: AppTypography.headlineMedium),
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -174,6 +302,16 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with SingleTi
                   ],
                 ),
               ),
+              // Status Toggle Button
+              IconButton( // Use a distinct button or switch
+                icon: Icon(
+                  isAdmitted ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.circle,
+                  color: isAdmitted ? AppColors.success : AppColors.textSecondary,
+                  size: 32,
+                ),
+                onPressed: _toggleStatus,
+                tooltip: "Toggle Admission Status",
+              )
             ],
           ),
           const SizedBox(height: 24),
@@ -329,7 +467,10 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with SingleTi
         // LIVE HEART RATE
         StreamBuilder<int>(
           initialData: (_patientData?['current_state']?['heart_rate'] as num?)?.toInt(),
-          stream: SocketService().vitalsStream.map((d) => d['hr'] as int? ?? 0).distinct(),
+          stream: SocketService().vitalsStream
+            .where((d) => d['patientId'] == widget.patientId)
+            .map((d) => d['hr'] as int? ?? 0)
+            .distinct(),
           builder: (context, snap) {
               final val = (snap.data != null && snap.data! > 0) ? snap.data.toString() : "--";
               return VitalsCard(
@@ -342,7 +483,9 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with SingleTi
                    height: 120,
                    child: HeartRateGraph(
                      color: AppColors.success,
-                     waveStream: SocketService().vitalsStream.map((d) => (d['ecg'] as num?)?.toDouble() ?? 0.0),
+                     waveStream: SocketService().vitalsStream
+                       .where((d) => d['patientId'] == widget.patientId)
+                       .map((d) => (d['ecg'] as num?)?.toDouble() ?? 0.0),
                    ),
                 ),
               );
@@ -358,7 +501,10 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with SingleTi
              }
              return raw?.toString();
           }(),
-          stream: SocketService().vitalsStream.map((d) => d['bp'] as String? ?? "--/--").distinct(),
+          stream: SocketService().vitalsStream
+            .where((d) => d['patientId'] == widget.patientId)
+            .map((d) => d['bp'] as String? ?? "--/--")
+            .distinct(),
           builder: (context, snap) {
               final val = snap.data ?? "--/--";
               return VitalsCard(
@@ -380,7 +526,10 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with SingleTi
         // LIVE SpO2
         StreamBuilder<int>(
           initialData: (_patientData?['current_state']?['spo2'] as num?)?.toInt(),
-          stream: SocketService().vitalsStream.map((d) => (d['spo2'] as num?)?.toInt() ?? 0).distinct(),
+          stream: SocketService().vitalsStream
+            .where((d) => d['patientId'] == widget.patientId)
+            .map((d) => (d['spo2'] as num?)?.toInt() ?? 0)
+            .distinct(),
           builder: (context, snap) {
               final val = (snap.data != null && snap.data! > 0) ? snap.data.toString() : "--";
               return VitalsCard(
@@ -393,7 +542,9 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with SingleTi
                    height: 120,
                    child: OxygenGraph(
                      color: AppColors.info,
-                     waveStream: SocketService().vitalsStream.map((d) => (d['spo2_wave'] as num?)?.toDouble() ?? 0.0),
+                     waveStream: SocketService().vitalsStream
+                       .where((d) => d['patientId'] == widget.patientId)
+                       .map((d) => (d['spo2_wave'] as num?)?.toDouble() ?? 0.0),
                    ),
                 ),
               );
@@ -404,61 +555,142 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with SingleTi
   }
 
   Widget _buildMedsTab() {
-    if (_medications.isEmpty) {
-      return Center(child: Text("No active medications.", style: AppTypography.bodyMedium));
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: _medications.length,
-      itemBuilder: (context, index) {
-        final med = _medications[index];
-        return Card(
-          child: ListTile(
-            leading: CircleAvatar(backgroundColor: AppColors.primary.withOpacity(0.1), child: const Icon(CupertinoIcons.capsule_fill, color: AppColors.primary)),
-            title: Text(med['name'] ?? "Medication", style: AppTypography.titleMedium),
-            subtitle: Text(med['dosage'] ?? "1 pill daily", style: AppTypography.bodyMedium),
+    return Stack(
+      children: [
+        if (_medications.isEmpty)
+          Center(child: Text("No active medications.", style: AppTypography.bodyMedium))
+        else
+          ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: _medications.length,
+            itemBuilder: (context, index) {
+              final med = _medications[index];
+              return Card(
+                child: ListTile(
+                  leading: CircleAvatar(backgroundColor: AppColors.primary.withOpacity(0.1), child: const Icon(CupertinoIcons.capsule_fill, color: AppColors.primary)),
+                  title: Text(med['name'] ?? "Medication", style: AppTypography.titleMedium),
+                  subtitle: Text(med['dosage'] ?? "1 pill daily", style: AppTypography.bodyMedium),
+                ),
+              );
+            },
           ),
-        );
-      },
+        Positioned(
+          bottom: 24,
+          right: 24,
+          child: FloatingActionButton.extended(
+            heroTag: "addMed",
+            onPressed: _showAddMedicationDialog,
+            backgroundColor: AppColors.primary,
+            icon: const Icon(Icons.add),
+            label: const Text("Prescribe"),
+          ),
+        )
+      ],
     );
   }
 
   Widget _buildHistoryTab() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: _history.length,
-      itemBuilder: (context, index) {
-        final item = _history[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
+    return Stack(
+      children: [
+        _history.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 12, height: 12,
-                    decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
+                  Icon(CupertinoIcons.doc_text_search, size: 48, color: AppColors.textSecondary.withOpacity(0.5)),
+                  const SizedBox(height: 16),
+                  Text(
+                    "No medical history found",
+                    style: AppTypography.bodyLarge.copyWith(color: AppColors.textSecondary),
                   ),
-                  Container(width: 2, height: 60, color: AppColors.surfaceHighlight),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Add a new record to get started",
+                    style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary.withOpacity(0.7)),
+                  ),
                 ],
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(item['date']!, style: AppTypography.labelSmall),
-                    const SizedBox(height: 4),
-                    Text(item['type']!, style: AppTypography.titleSmall),
-                    Text(item['note']!, style: AppTypography.bodyMedium),
-                  ],
-                ),
-              ),
-            ],
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(20),
+              itemCount: _history.length,
+              itemBuilder: (context, index) {
+                final item = _history[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.surface, width: 2),
+                              boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 8)]
+                            ),
+                          ),
+                          Container(
+                            width: 2,
+                            height: 60,
+                            color: AppColors.surfaceHighlight,
+                          )
+                        ],
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.surfaceHighlight),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    item['type'] ?? 'General',
+                                    style: AppTypography.titleMedium.copyWith(fontSize: 16, color: AppColors.primary),
+                                  ),
+                                  Text(
+                                    item['date'] ?? '',
+                                    style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                item['note'] ?? '',
+                                style: AppTypography.bodyMedium.copyWith(height: 1.5),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        Positioned(
+          bottom: 24,
+          right: 24,
+          child: FloatingActionButton.extended(
+            heroTag: "addHistory",
+            onPressed: _showAddHistoryDialog,
+            backgroundColor: AppColors.accent,
+            icon: const Icon(Icons.edit_note),
+            label: const Text("Add Note"),
           ),
-        );
-      },
+        )
+      ],
     );
   }
 }
