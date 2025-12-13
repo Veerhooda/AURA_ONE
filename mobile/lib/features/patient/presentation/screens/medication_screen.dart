@@ -115,7 +115,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
     return Scaffold(
       appBar: const AuraAppBar(title: "Medi-Space"),
       body: ListView.separated(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100), // Added bottom padding for nav bar
         itemCount: _medications.length,
         separatorBuilder: (c,i) => const SizedBox(height: 16),
         itemBuilder: (context, index) {
@@ -179,10 +179,14 @@ class _MedicationScreenState extends State<MedicationScreen> {
           );
         },
       ),
-      floatingActionButton: AuraFAB(
-        onPressed: _scanMedication,
-        icon: CupertinoIcons.add,
-        label: "Add Med",
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: AuraFAB(
+          heroTag: "medication_add_fab",
+          onPressed: _scanMedication,
+          icon: CupertinoIcons.add,
+          label: "Add Med",
+        ),
       ),
     );
   }

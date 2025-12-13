@@ -35,6 +35,21 @@ let PatientController = class PatientController {
     updateProfile(req, data) {
         return this.patientService.updateProfileByUserId(req.user.userId, data);
     }
+    updateStatus(id, body) {
+        return this.patientService.updateStatus(id, body.status);
+    }
+    addMedication(id, data) {
+        return this.patientService.addMedication(id, data);
+    }
+    addHistory(id, note) {
+        return this.patientService.addHistory(id, note);
+    }
+    getPatientMedications(id) {
+        return this.patientService.getPatientMedications(id);
+    }
+    getPatientHistory(id) {
+        return this.patientService.getPatientHistory(id);
+    }
 };
 exports.PatientController = PatientController;
 __decorate([
@@ -77,6 +92,49 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], PatientController.prototype, "updateProfile", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)(':id/status'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", void 0)
+], PatientController.prototype, "updateStatus", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)(':id/medications'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", void 0)
+], PatientController.prototype, "addMedication", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)(':id/history'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)('note')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String]),
+    __metadata("design:returntype", void 0)
+], PatientController.prototype, "addHistory", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Get)(':id/medications'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], PatientController.prototype, "getPatientMedications", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Get)(':id/history'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], PatientController.prototype, "getPatientHistory", null);
 exports.PatientController = PatientController = __decorate([
     (0, common_1.Controller)('patients'),
     __metadata("design:paramtypes", [patient_service_1.PatientService])

@@ -5,18 +5,40 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../services/api_service.dart';
 
 class UpdateProfileScreen extends StatefulWidget {
-  const UpdateProfileScreen({super.key});
+  final String? initialWeight;
+  final String? initialStatus;
+  final String? initialSymptoms;
+
+  const UpdateProfileScreen({
+    super.key,
+    this.initialWeight,
+    this.initialStatus,
+    this.initialSymptoms,
+  });
 
   @override
   State<UpdateProfileScreen> createState() => _UpdateProfileScreenState();
 }
 
 class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
-  final _weightController = TextEditingController();
-  final _symptomsController = TextEditingController();
-  String _selectedStatus = 'Admitted';
+  late TextEditingController _weightController;
+  late TextEditingController _symptomsController;
+  late String _selectedStatus; // Removed default initialization here
   bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _weightController = TextEditingController(text: widget.initialWeight);
+    _symptomsController = TextEditingController(text: widget.initialSymptoms);
+    _selectedStatus = widget.initialStatus ?? 'Admitted';
+    
+    // Ensure status is valid
+    if (!['Admitted', 'Critical', 'Discharged', 'Observation'].contains(_selectedStatus)) {
+      _selectedStatus = 'Admitted';
+    }
+  }
 
   Future<void> _handleSubmit() async {
     if (_formKey.currentState!.validate()) {
@@ -29,14 +51,16 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
         );
 
         if (mounted) {
-           // Provide feedback and go home
+           setState(() => _isLoading = false);
            ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Profile Updated Successfully!"),
               backgroundColor: AppColors.success,
             )
            );
-           context.go('/patient/home');
+           if (Navigator.canPop(context)) {
+             Navigator.pop(context);
+           }
         }
       } catch (e) {
         if (mounted) {

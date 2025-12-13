@@ -9,6 +9,8 @@ export declare class PatientService {
             bed: string;
             ward: string;
         };
+        status: string;
+        diagnosis: string;
         current_state: {
             heart_rate: any;
             blood_pressure: any;
@@ -27,8 +29,6 @@ export declare class PatientService {
     private getLatestVital;
     createPatient(data: any): Promise<{
         id: number;
-        createdAt: Date;
-        updatedAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -43,22 +43,22 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     findAll(): Promise<({
         user: {
-            name: string;
             id: number;
-            email: string;
-            password: string;
-            blockchainId: string | null;
-            role: import(".prisma/client").$Enums.Role;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
+            password: string;
+            name: string;
+            blockchainId: string | null;
+            role: import(".prisma/client").$Enums.Role;
         };
     } & {
         id: number;
-        createdAt: Date;
-        updatedAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -73,11 +73,11 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
     })[]>;
     reportPain(patientId: number, level: number): Promise<{
         id: number;
-        createdAt: Date;
-        updatedAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -92,11 +92,11 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     updateProfileByUserId(userId: number, data: any): Promise<{
         id: number;
-        createdAt: Date;
-        updatedAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -111,5 +111,69 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
+    updateStatus(id: number, status: string): Promise<{
+        id: number;
+        userId: number;
+        mrn: string;
+        dob: Date;
+        gender: string;
+        bed: string | null;
+        ward: string | null;
+        riskScore: number | null;
+        diagnosis: string | null;
+        weight: string | null;
+        status: string | null;
+        symptoms: string | null;
+        painLevel: number | null;
+        painReportedAt: Date | null;
+        latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    addMedication(patientId: number, data: any): Promise<{
+        id: number;
+        createdAt: Date;
+        patientId: number;
+        dosage: string;
+        frequency: string;
+        startDate: Date;
+        endDate: Date | null;
+        active: boolean;
+        medicationId: number;
+    }>;
+    addHistory(id: number, note: string): Promise<{
+        id: number;
+        userId: number;
+        mrn: string;
+        dob: Date;
+        gender: string;
+        bed: string | null;
+        ward: string | null;
+        riskScore: number | null;
+        diagnosis: string | null;
+        weight: string | null;
+        status: string | null;
+        symptoms: string | null;
+        painLevel: number | null;
+        painReportedAt: Date | null;
+        latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    getPatientMedications(patientId: number): Promise<{
+        id: number;
+        name: string;
+        dosage: string;
+        frequency: string;
+        startDate: Date;
+        active: boolean;
+    }[]>;
+    getPatientHistory(patientId: number): Promise<{
+        date: string;
+        type: string;
+        note: string;
+    }[]>;
 }

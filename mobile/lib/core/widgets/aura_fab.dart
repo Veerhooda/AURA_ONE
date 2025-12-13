@@ -9,6 +9,7 @@ class AuraFAB extends StatelessWidget {
   final String? label;
   final bool isLoading;
   final Color? backgroundColor;
+  final Object? heroTag;
 
   const AuraFAB({
     super.key,
@@ -17,6 +18,7 @@ class AuraFAB extends StatelessWidget {
     this.label,
     this.isLoading = false,
     this.backgroundColor,
+    this.heroTag,
   });
 
   @override
@@ -35,6 +37,7 @@ class AuraFAB extends StatelessWidget {
       ),
       child: label != null
           ? FloatingActionButton.extended(
+              heroTag: heroTag,
               onPressed: onPressed,
               backgroundColor: backgroundColor ?? AppColors.primary,
               icon: isLoading 
@@ -46,6 +49,7 @@ class AuraFAB extends StatelessWidget {
               ),
             )
           : FloatingActionButton(
+              heroTag: heroTag,
               onPressed: onPressed,
               backgroundColor: backgroundColor ?? AppColors.primary,
               child: isLoading

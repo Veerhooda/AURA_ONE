@@ -34,4 +34,34 @@ export class PatientController {
   updateProfile(@Request() req, @Body() data: any) {
       return this.patientService.updateProfileByUserId(req.user.userId, data);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/status')
+  updateStatus(@Param('id', ParseIntPipe) id: number, @Body() body: { status: string }) {
+    return this.patientService.updateStatus(id, body.status);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/medications')
+  addMedication(@Param('id', ParseIntPipe) id: number, @Body() data: any) {
+    return this.patientService.addMedication(id, data);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/history')
+  addHistory(@Param('id', ParseIntPipe) id: number, @Body('note') note: string) {
+    return this.patientService.addHistory(id, note);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id/medications')
+  getPatientMedications(@Param('id', ParseIntPipe) id: number) {
+    return this.patientService.getPatientMedications(id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id/history')
+  getPatientHistory(@Param('id', ParseIntPipe) id: number) {
+    return this.patientService.getPatientHistory(id);
+  }
 }

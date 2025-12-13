@@ -40,8 +40,13 @@ class ApiService {
       if (data['user'] != null && data['user']['name'] != null) {
         await _storage.write(key: 'user_name', value: data['user']['name']);
       }
-      if (data['patient'] != null && data['patient']['mrn'] != null) {
-        await _storage.write(key: 'patient_mrn', value: data['patient']['mrn']);
+      if (data['patient'] != null) {
+        if (data['patient']['mrn'] != null) {
+          await _storage.write(key: 'patient_mrn', value: data['patient']['mrn']);
+        }
+        if (data['patient']['id'] != null) {
+          await _storage.write(key: 'patient_id', value: data['patient']['id'].toString());
+        }
       }
       return data;
     } else {
@@ -51,6 +56,11 @@ class ApiService {
   
   Future<String?> getPatientMRN() async {
     return await _storage.read(key: 'patient_mrn');
+  }
+
+  Future<int?> getPatientId() async {
+    final idStr = await _storage.read(key: 'patient_id');
+    return idStr != null ? int.tryParse(idStr) : null;
   }
 
   Future<void> updateProfile({
@@ -160,11 +170,27 @@ class ApiService {
       throw Exception('Failed to process voice command');
     }
   }
+  Future<List<dynamic>> getPatientHistory(int patientId) async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/patients/$patientId/history'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      return [];
+    }
+  }
+
   Future<List<dynamic>> getPatientMedications(int patientId) async {
     final token = await getToken();
-    // ... impl
     final response = await http.get(
-      Uri.parse('$baseUrl/medication/patient/$patientId'),
+      Uri.parse('$baseUrl/patients/$patientId/medications'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -191,6 +217,51 @@ class ApiService {
 
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Failed to report pain');
+    }
+  }
+
+  Future<void> updatePatientStatus(int id, String status) async {
+    final token = await getToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/patients/$id/status'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'status': status}),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+       throw Exception('Failed to update status');
+    }
+  }
+
+  Future<void> addMedication(int id, String name, String dosage) async {
+    final token = await getToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/patients/$id/medications'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'name': name, 'dosage': dosage}),
+    );
+    if (response.statusCode != 201) {
+       throw Exception('Failed to add medication');
+    }
+  }
+
+  Future<void> addHistory(int id, String note) async {
+    final token = await getToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/patients/$id/history'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'note': note}),
+    );
+    if (response.statusCode != 201) {
+       throw Exception('Failed to add history');
     }
   }
 }
