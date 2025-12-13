@@ -1,0 +1,248 @@
+{
+  "name": "Patient Summary + Recovery Graph (Gemini 2.5 Pro)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/generate-summary",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "c361d491-5298-44fb-aa98-0361cfa3d450",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        176
+      ],
+      "webhookId": "a2d98d57-2f59-4675-aac0-d12a381e5e32"
+    },
+    {
+      "parameters": {
+        "url": "={{ \n\"https://quickchart.io/chart?c=\" + encodeURIComponent(JSON.stringify({\n  type: 'line',\n  data: {\n    labels: ['Start', 'Day 2', 'Day 3', 'Day 4', 'End'],\n    datasets: [{\n      label: 'Recovery',\n      borderColor: 'blue',\n      fill: false,\n      data: $json.recovery_data\n    }]\n  }\n})) \n}}",
+        "responseFormat": "file",
+        "jsonParameters": true,
+        "options": {}
+      },
+      "id": "5efa2616-946b-4d79-82a6-a5297ac8ef55",
+      "name": "Generate Recovery Graph",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        144,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "mergeByIndex",
+        "join": "inner"
+      },
+      "id": "06338c62-8688-4fc4-b5b8-b241ee02f64a",
+      "name": "Final Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 1,
+      "position": [
+        592,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n\n  \"patient_name\": \"{{ $json.patient_name }}\",\n\n  \"summary\": \"{{ $json.medical_summary }}\",\n\n  \"recovery_graph_url\": \"{{ $json.recovery_data }}\"\n\n}",
+        "options": {}
+      },
+      "id": "7ba7eeb3-baed-41b8-9d7d-d3cf632f50cc",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        816,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        400
+      ],
+      "id": "78e0f9c3-2118-4960-bf95-bb647cb6a5de",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "BgRqI81dPOzY99Sf",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following patient data:\n{{ JSON.stringify($json.body) }}\n\nReturn ONLY a valid JSON object (no markdown, no extra text) with the following structure:\n{\n  \"patient_name\": \"extracted name\",\n  \"medical_summary\": \"A professional 3-sentence summary.\",\n  \"recovery_data\": [92, 92, 93, 94]\n}\n\nCRITICAL RULES:\n1. \"recovery_data\" MUST be an array of calculated INTEGERS (0-100).\n2. DO NOT return math expressions like \"100 - 8\". You MUST perform the subtraction yourself and return the final result (e.g., 92).\n3. The array length must match the number of patient history entries exactly.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -432,
+        176
+      ],
+      "id": "84faa810-79f0-4927-8c6d-132af660ba28",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get the text output from the LLM Chain node\n// Note: Basic LLM Chain usually outputs the answer in a field called 'text'\nconst aiResponse = items[0].json.text; \n\n// 2. Return it as a clean JSON object for the Merge node\nreturn {\n  json: {\n    medical_summary: aiResponse\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        80
+      ],
+      "id": "e8872d3f-6917-482b-ad39-0e5ba74b8406",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the binary data from the previous node\n// Default key is usually 'data'\nconst binaryData = items[0].binary.data;\n\nreturn {\n  json: {\n    // This converts the binary buffer to a Base64 string\n    image_data: binaryData.data,\n    \n    // You can also grab the mime type (e.g., image/png)\n    file_type: binaryData.mimeType,\n    \n    // Add any other text you want here\n    message: \"Here is the graph generated from the webhook.\"\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        272
+      ],
+      "id": "32ba024c-f519-4239-b428-ee9f0951af4c",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the raw text from the LLM\nconst llmText = $node[\"Basic LLM Chain\"].json.text;\n\n// Clean up markdown code blocks if the LLM added them (common cause of errors)\nconst cleanText = llmText.replace(/```json/g, '').replace(/```/g, '').trim();\n\ntry {\n  // Parse the text into a real JSON object\n  const parsedData = JSON.parse(cleanText);\n  \n  // Return the data in a clean format for the next node\n  return {\n    recovery_data: parsedData.recovery_data\n  };\n} catch (error) {\n  // If parsing fails, return a default safe array so the workflow doesn't crash\n  return {\n    recovery_data: [0, 0, 0, 0, 0],\n    error: \"JSON Parsing Failed: \" + error.message\n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        272
+      ],
+      "id": "2bda1490-46f8-453d-ad6c-146c564e82af",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Generate Recovery Graph": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Merge": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Final Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Final Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Generate Recovery Graph",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0db88d96-542d-4749-8d5b-f5ad71bc2439",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ea6e262a6250de14d6b9dd14ef55a972d6d440f4974afc8c9acdcf982bc90d5a"
+  },
+  "id": "11uEqPEdHSMYAzIl",
+  "tags": []
+}
