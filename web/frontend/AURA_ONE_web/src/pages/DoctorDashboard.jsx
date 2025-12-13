@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
-import { Users, AlertCircle, CheckCircle, Plus, Edit2, Trash2, X, Save } from 'lucide-react';
+import { Users, AlertCircle, CheckCircle, Plus, Edit2, Trash2, X, Save, FileText, ClipboardList } from 'lucide-react';
 
 const DoctorDashboard = () => {
+  const navigate = useNavigate();
   // Mock Data State
   const [patients, setPatients] = useState([
     { id: '#A101', name: 'Priyanshu Kumar', condition: 'Post-Surgery', room: '304', status: 'Stable' },
@@ -87,6 +89,8 @@ const DoctorDashboard = () => {
               <PatientRow 
                 key={patient.id} 
                 patient={patient} 
+                onViewRecord={() => navigate(`/dashboard/doctor/record/${patient.id}`)}
+                onViewReport={() => navigate(`/dashboard/doctor/report/${patient.id}`)}
                 onEdit={() => handleEdit(patient)}
                 onDelete={() => handleDelete(patient.id)}
               />
@@ -174,7 +178,7 @@ const StatBadge = ({ label, value, icon: Icon, color }) => (
   </div>
 );
 
-const PatientRow = ({ patient, onEdit, onDelete }) => {
+const PatientRow = ({ patient, onViewReport, onViewRecord, onEdit, onDelete }) => {
   const { name, id, condition, room, status } = patient;
   
   const getStatusColor = (s) => {
@@ -204,6 +208,20 @@ const PatientRow = ({ patient, onEdit, onDelete }) => {
       </td>
       <td style={{ padding: '1rem', textAlign: 'right' }}>
         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+          <button 
+            onClick={onViewRecord} 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', padding: '0.5rem' }} 
+            title="Medical Record (PHR)"
+          >
+            <ClipboardList size={18} />
+          </button>
+          <button 
+            onClick={onViewReport} 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', padding: '0.5rem' }} 
+            title="Doctor Notes"
+          >
+            <FileText size={18} />
+          </button>
           <button 
             onClick={onEdit} 
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '0.5rem' }} 

@@ -75,3 +75,30 @@ body {
   margin: 0 auto;
   padding: 0 var(--spacing-sm);
 }
+
+/* Responsive Utilities */
+.desktop-only { display: block; }
+.mobile-only { display: none; }
+
+@media (max-width: 768px) {
+  .desktop-only { display: none !important; }
+  .mobile-only { display: block !important; }
+  
+  /* Sidebar Mobile Transitions */
+  aside.mobile-closed {
+    transform: translateX(-100%);
+  }
+  aside.mobile-open {
+    transform: translateX(0);
+  }
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
