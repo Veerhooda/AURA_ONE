@@ -21,7 +21,7 @@ body {
 
 @layer utilities {
     .glass-panel {
-        @apply backdrop-blur-2xl border border-white/10 bg-slate-900/60 rounded-2xl shadow-glass transition-all duration-300;
+        @apply backdrop-blur-2xl border border-white/10 bg-slate-900/60 rounded-2xl transition-all duration-300;
         box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 8px 32px -4px rgba(0, 0, 0, 0.3);
     }
     

@@ -12,7 +12,7 @@ interface User {
 
 interface AuthContextType {
     user: User | null;
-    login: (role: Role) => void;
+    login: (email: string, password: string) => void;
     logout: () => void;
     isLoading: boolean;
 }
@@ -32,21 +32,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
     }, []);
 
-    const login = (role: Role) => {
+    const login = (email: string, password: string) => {
         setIsLoading(true);
-        // Mock Login Logic
-        const mockUser: User = {
-            id: '1',
-            name: role === 'DOCTOR' ? 'Dr. Priyanshu' : role === 'NURSE' ? 'Nurse Sarah' : role === 'ADMIN' ? 'Admin User' : 'Family Member',
-            email: `${role.toLowerCase()}@aura.one`,
-            role: role,
-        };
         
+        // Mock Login Logic
         setTimeout(() => {
+            let role: Role = 'FAMILY';
+            
+            // Simple logic to derive role from email for demo purposes
+            if (email.includes('doctor')) role = 'DOCTOR';
+            else if (email.includes('nurse')) role = 'NURSE';
+            else if (email.includes('admin')) role = 'ADMIN';
+            
+            // Validate domain
+            if (!email.endsWith('@aura.one') && !email.endsWith('@innerve.com')) {
+                setIsLoading(false);
+                throw new Error("Invalid email domain. Please use your organization email.");
+            }
+
+            const mockUser: User = {
+                id: crypto.randomUUID(),
+                name: email.split('@')[0].toUpperCase(),
+                email: email,
+                role: role,
+            };
+            
             setUser(mockUser);
             localStorage.setItem('aura_user', JSON.stringify(mockUser));
             setIsLoading(false);
-        }, 800); // Simulate network delay
+        }, 1500); // Simulate realistic network delay
     };
 
     const logout = () => {
