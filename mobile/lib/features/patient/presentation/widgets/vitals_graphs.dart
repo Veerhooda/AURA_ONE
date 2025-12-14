@@ -9,12 +9,14 @@ abstract class AnimatedVitalsGraph extends StatefulWidget {
   final Color color;
   final double height;
   final bool isSimulation;
+  final bool isActive;
 
   const AnimatedVitalsGraph({
     super.key,
     required this.color,
     this.height = 150,
     this.isSimulation = true,
+    this.isActive = true,
   });
 }
 
@@ -34,6 +36,7 @@ class HeartRateGraph extends AnimatedVitalsGraph {
     this.bpmStream,
     this.waveStream,
     super.isSimulation = true,
+    super.isActive = true,
   });
 
   @override
@@ -51,7 +54,8 @@ class _HeartRateGraphState extends State<HeartRateGraph> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 1))..repeat();
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 1));
+    if (widget.isActive) _controller.repeat();
     _controller.addListener(_updateGraph);
 
     // Listen to BPM (HealthKit)
@@ -73,6 +77,18 @@ class _HeartRateGraphState extends State<HeartRateGraph> with SingleTickerProvid
     }
 
     for (int i = 0; i < _maxPoints; i++) _points.add(0);
+  }
+
+  @override
+  void didUpdateWidget(HeartRateGraph oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive != oldWidget.isActive) {
+      if (widget.isActive) {
+        _controller.repeat();
+      } else {
+        _controller.stop();
+      }
+    }
   }
 
   void _updateGraph() {
@@ -123,7 +139,7 @@ class _HeartRateGraphState extends State<HeartRateGraph> with SingleTickerProvid
 // ---------------------------------------------------------------------------
 class OxygenGraph extends AnimatedVitalsGraph {
   final Stream<double>? waveStream;
-  const OxygenGraph({super.key, required super.color, this.waveStream});
+  const OxygenGraph({super.key, required super.color, this.waveStream, super.isActive = true});
 
   @override
   State<OxygenGraph> createState() => _OxygenGraphState();
@@ -138,7 +154,8 @@ class _OxygenGraphState extends State<OxygenGraph> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 1))..repeat();
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 1));
+    if (widget.isActive) _controller.repeat();
     _controller.addListener(_updateSimulation);
 
     if (widget.waveStream != null) {
@@ -154,6 +171,15 @@ class _OxygenGraphState extends State<OxygenGraph> with SingleTickerProviderStat
     }
 
     for (int i = 0; i < _maxPoints; i++) _points.add(0);
+  }
+
+  @override
+  void didUpdateWidget(OxygenGraph oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive != oldWidget.isActive) {
+      if (widget.isActive) _controller.repeat();
+      else _controller.stop();
+    }
   }
 
   void _updateSimulation() {
@@ -196,7 +222,7 @@ class _OxygenGraphState extends State<OxygenGraph> with SingleTickerProviderStat
 // 3. BLOOD PRESSURE GRAPH (Dual Wave)
 // ---------------------------------------------------------------------------
 class BloodPressureGraph extends AnimatedVitalsGraph {
-  const BloodPressureGraph({super.key, required super.color});
+  const BloodPressureGraph({super.key, required super.color, super.isActive = true});
 
   @override
   State<BloodPressureGraph> createState() => _BloodPressureGraphState();
@@ -211,11 +237,21 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> with SingleTick
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 1))..repeat();
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 1));
+    if (widget.isActive) _controller.repeat();
     _controller.addListener(_updateSimulation);
     for (int i = 0; i < _maxPoints; i++) {
        _systolicPoints.add(0);
        _diastolicPoints.add(0);
+    }
+  }
+
+  @override
+  void didUpdateWidget(BloodPressureGraph oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive != oldWidget.isActive) {
+      if (widget.isActive) _controller.repeat();
+      else _controller.stop();
     }
   }
 

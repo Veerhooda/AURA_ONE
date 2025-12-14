@@ -46,6 +46,8 @@ let PatientService = class PatientService {
                 mrn: patient.mrn,
                 bed: patient.bed,
                 ward: patient.ward,
+                weight: patient.weight,
+                symptoms: patient.symptoms,
             },
             status: patient.status || 'Discharged',
             diagnosis: patient.diagnosis || '',
@@ -175,20 +177,71 @@ let PatientService = class PatientService {
         }
         const entries = patient.diagnosis.split('\n').filter(line => line.trim());
         return entries.map(entry => {
-            const match = entry.match(/^\[(\d{4}-\d{2}-\d{2})\]\s*(.+)/);
+            const match = entry.match(/^\[([\d-]+)\]\s*(.+)$/);
             if (match) {
                 const [, date, rest] = match;
                 const colonIndex = rest.indexOf(':');
                 if (colonIndex > 0) {
+                    const type = rest.substring(0, colonIndex).trim();
+                    const note = rest.substring(colonIndex + 1).trim();
                     return {
                         date,
-                        type: rest.substring(0, colonIndex).trim(),
-                        note: rest.substring(colonIndex + 1).trim()
+                        type,
+                        note
                     };
                 }
                 return { date, type: 'Note', note: rest.trim() };
             }
-            return { date: new Date().toISOString().split('T')[0], type: 'Note', note: entry };
+            return {
+                date: new Date().toISOString().split('T')[0],
+                type: 'Note',
+                note: entry.trim()
+            };
+        });
+    }
+    async getPatientReports(patientId) {
+        return [
+            {
+                id: 1,
+                name: 'Blood Test Report.pdf',
+                type: 'PDF',
+                date: '2023-10-25',
+                size: '1.2 MB',
+                url: 'https://example.com/report1.pdf'
+            },
+            {
+                id: 2,
+                name: 'Chest X-Ray.jpg',
+                type: 'IMAGE',
+                date: '2023-11-02',
+                size: '3.5 MB',
+                url: 'https://example.com/xray.jpg'
+            },
+            {
+                id: 3,
+                name: 'MRI Scan - Head.zip',
+                type: 'ZIP',
+                date: '2023-12-10',
+                size: '15.0 MB',
+                url: 'https://example.com/mri.zip'
+            }
+        ];
+    }
+    async uploadReport(patientId, fileName, fileType) {
+        return {
+            message: 'File uploaded successfully',
+            fileId: Math.floor(Math.random() * 1000)
+        };
+    }
+    async addManualVital(patientId, type, value, unit) {
+        return this.prisma.vitals.create({
+            data: {
+                patientId,
+                type,
+                value,
+                unit,
+                timestamp: new Date(),
+            },
         });
     }
 };

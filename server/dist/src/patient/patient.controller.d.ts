@@ -8,6 +8,8 @@ export declare class PatientController {
             mrn: string;
             bed: string;
             ward: string;
+            weight: string;
+            symptoms: string;
         };
         status: string;
         diagnosis: string;
@@ -29,16 +31,17 @@ export declare class PatientController {
     findAll(): Promise<({
         user: {
             id: number;
+            email: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
-            email: string;
             password: string;
-            name: string;
             blockchainId: string | null;
             role: import(".prisma/client").$Enums.Role;
         };
     } & {
         id: number;
+        createdAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -53,11 +56,11 @@ export declare class PatientController {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         updatedAt: Date;
     })[]>;
     create(createPatientDto: any): Promise<{
         id: number;
+        createdAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -72,11 +75,11 @@ export declare class PatientController {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         updatedAt: Date;
     }>;
     reportPain(id: number, level: number): Promise<{
         id: number;
+        createdAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -91,11 +94,11 @@ export declare class PatientController {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         updatedAt: Date;
     }>;
     updateProfile(req: any, data: any): Promise<{
         id: number;
+        createdAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -110,13 +113,13 @@ export declare class PatientController {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         updatedAt: Date;
     }>;
     updateStatus(id: number, body: {
         status: string;
     }): Promise<{
         id: number;
+        createdAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -131,7 +134,6 @@ export declare class PatientController {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         updatedAt: Date;
     }>;
     addMedication(id: number, data: any): Promise<{
@@ -147,6 +149,7 @@ export declare class PatientController {
     }>;
     addHistory(id: number, note: string): Promise<{
         id: number;
+        createdAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -161,7 +164,6 @@ export declare class PatientController {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         updatedAt: Date;
     }>;
     getPatientMedications(id: number): Promise<{
@@ -177,4 +179,31 @@ export declare class PatientController {
         type: string;
         note: string;
     }[]>;
+    getPatientReports(id: number): Promise<{
+        id: number;
+        name: string;
+        type: string;
+        date: string;
+        size: string;
+        url: string;
+    }[]>;
+    uploadReport(id: number, body: {
+        fileName: string;
+        fileType: string;
+    }): Promise<{
+        message: string;
+        fileId: number;
+    }>;
+    addManualVital(id: number, body: {
+        type: string;
+        value: number;
+        unit: string;
+    }): Promise<{
+        id: number;
+        timestamp: Date;
+        patientId: number;
+        type: string;
+        value: number;
+        unit: string;
+    }>;
 }

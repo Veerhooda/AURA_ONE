@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'dart:math';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/aura_app_bar.dart';
 import '../../../../core/widgets/aura_fab.dart';
+import '../../../../services/api_service.dart';
+import 'medication_schedule_screen.dart';
 
 class MedicationScreen extends StatefulWidget {
   const MedicationScreen({super.key});
@@ -13,53 +16,92 @@ class MedicationScreen extends StatefulWidget {
 }
 
 class _MedicationScreenState extends State<MedicationScreen> {
-  // Stub data until we hook up ApiService
-  final List<Map<String, dynamic>> _medications = [
-    {
-      "name": "Lisinopril",
-      "dosage": "10mg",
-      "frequency": "Daily",
-      "nextDose": "8:00 AM",
-      "icon": CupertinoIcons.capsule_fill,
-      "color": AppColors.primary
-    },
-    {
-      "name": "Metformin",
-      "dosage": "500mg",
-      "frequency": "Twice Daily",
-      "nextDose": "12:00 PM",
-      "icon": CupertinoIcons.circle_grid_hex_fill,
-      "color": AppColors.accent
-    }
-  ];
+  late Future<List<dynamic>> _medicationsFuture;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _dosageController = TextEditingController();
+  final TextEditingController _freqController = TextEditingController();
+  
+  bool _isAdding = false;
 
-  void _scanMedication() {
-    // Simulate AI Scan
+  @override
+  void initState() {
+    super.initState();
+    _refreshMedications();
+  }
+
+  void _refreshMedications() {
+    setState(() {
+      final api = ApiService();
+      // We need to pass the patient ID. 
+      // Ideally this screen shouldn't need to know ID if the service handles it, 
+      // but the API signature requires it.
+      // We'll wrap it in a future that fetches ID first.
+      _medicationsFuture = _fetchMeds();
+    });
+  }
+
+  Future<List<dynamic>> _fetchMeds() async {
+    final id = await ApiService().getPatientId();
+    if (id != null) {
+      return ApiService().getPatientMedications(id);
+    }
+    return [];
+  }
+
+  void _showAddMedicationSheet() {
+    _nameController.clear();
+    _dosageController.clear();
+    _freqController.clear();
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: 300,
+        height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: const Color(0xFF1E293B), // Slate 800
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border.all(color: AppColors.surfaceHighlight),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
         ),
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(CupertinoIcons.barcode_viewfinder, size: 48, color: AppColors.primary),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Add New Medication", style: AppTypography.headlineMedium.copyWith(color: Colors.white)),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white70),
+                  onPressed: () => Navigator.pop(context),
+                )
+              ],
+            ),
+            const SizedBox(height: 24),
+            
+            _buildInput("Medication Name", "e.g. Lisinopril", _nameController),
             const SizedBox(height: 16),
-            Text("Scanning Label...", style: AppTypography.titleLarge),
-            const SizedBox(height: 24),
-            const LinearProgressIndicator(color: AppColors.primary, backgroundColor: AppColors.background),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _showInteractionWarning("Warfarin");
-              },
-              child: const Text("Simulate Detection: Warfarin"),
+            _buildInput("Dosage", "e.g. 10mg", _dosageController),
+            const SizedBox(height: 16),
+            _buildInput("Frequency", "e.g. Daily, 2x/day", _freqController),
+            
+            const Spacer(),
+            
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _submitMedication,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: _isAdding 
+                  ? const CupertinoActivityIndicator(color: Colors.black)
+                  : const Text("Save Prescription", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
             )
           ],
         ),
@@ -67,127 +109,186 @@ class _MedicationScreenState extends State<MedicationScreen> {
     );
   }
 
-  void _showInteractionWarning(String medName) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Row(
-          children: [
-            const Icon(CupertinoIcons.exclamationmark_triangle_fill, color: AppColors.warning),
-            const SizedBox(width: 8),
-            Text("Interaction Alert", style: AppTypography.titleMedium.copyWith(color: AppColors.warning)),
-          ],
-        ),
-        content: Text(
-          "Warning: $medName may interact with your existing prescription of Aspirin.\n\nRisk: Increased bleeding.",
-          style: AppTypography.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Cancel", style: TextStyle(color: AppColors.textSecondary)),
+  Widget _buildInput(String label, String hint, TextEditingController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+            filled: true,
+            fillColor: Colors.black12,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _medications.add({
-                  "name": medName,
-                  "dosage": "5mg",
-                  "frequency": "Daily",
-                  "nextDose": "6:00 PM",
-                  "icon": CupertinoIcons.bandage_fill,
-                  "color": AppColors.error
-                });
-              });
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.warning),
-            child: const Text("Add Anyway", style: TextStyle(color: Colors.black)),
-          )
-        ],
-      ),
+        )
+      ],
     );
+  }
+
+  Future<void> _submitMedication() async {
+    if (_nameController.text.isEmpty) return;
+
+    setState(() => _isAdding = true); // Note: this rebuilds the sheet content if state is improved, simplified here.
+    
+    // Actually we need to handle loading state more gracefully in a modal, 
+    // but for MVP let's just await and close.
+    
+    try {
+      final id = await ApiService().getPatientId();
+      if (id != null) {
+        // We have to add arguments to ApiService.addMedication first?
+        // Wait, the checked file showed only name/dosage. The backend supports frequency but the frontend API service might need update.
+        // Let's assume I will update the service in parallel or passing a map.
+        // The viewed ApiService only had: Future<void> addMedication(int id, String name, String dosage)
+        // I should update ApiService in the next step to support frequency, but for now I'll send basic info.
+        await ApiService().addMedication(
+          id, 
+          _nameController.text, 
+          _dosageController.text,
+          frequency: _freqController.text.isNotEmpty ? _freqController.text : 'Daily'
+        ); 
+      }
+      if (mounted) {
+        Navigator.pop(context);
+        _refreshMedications();
+      }
+    } catch (e) {
+      if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: AppColors.error));
+      }
+    } finally {
+      if (mounted) setState(() => _isAdding = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AuraAppBar(title: "Medi-Space"),
-      body: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100), // Added bottom padding for nav bar
-        itemCount: _medications.length,
-        separatorBuilder: (c,i) => const SizedBox(height: 16),
-        itemBuilder: (context, index) {
-          final med = _medications[index];
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface, // Upgraded from background
-              borderRadius: BorderRadius.circular(24), // More rounded
-              border: Border.all(color: AppColors.surfaceHighlight.withOpacity(0.5)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
-                )
-              ]
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: (med['color'] as Color).withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: (med['color'] as Color).withOpacity(0.3))
-                  ),
-                  child: Icon(med['icon'], color: (med['color'] as Color), size: 28),
+      backgroundColor: const Color(0xFF0F172A), // Match the dark theme of other screens
+      appBar: const AuraAppBar(title: "Medi-Track", backgroundColor: Colors.transparent),
+      body: FutureBuilder<List<dynamic>>(
+        future: _medicationsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CupertinoActivityIndicator(color: AppColors.primary));
+          }
+          
+          if (snapshot.hasError) {
+            return Center(child: Text("Error loading meds", style: TextStyle(color: AppColors.error)));
+          }
+
+          final meds = snapshot.data ?? [];
+
+          if (meds.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                   Icon(CupertinoIcons.capsule, size: 64, color: Colors.white.withOpacity(0.2)),
+                   const SizedBox(height: 16),
+                   Text("No Active Prescriptions", style: AppTypography.bodyLarge.copyWith(color: Colors.white54)),
+                ],
+              ),
+            );
+          }
+
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+            itemCount: meds.length,
+            separatorBuilder: (c,i) => const SizedBox(height: 16),
+            itemBuilder: (context, index) {
+              final med = meds[index];
+              final color = _getDeterministicColor(med['name'] ?? 'M');
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(med['name'], style: AppTypography.titleMedium.copyWith(letterSpacing: 0.5)),
-                      const SizedBox(height: 4),
-                      Text("${med['dosage']} • ${med['frequency']}", style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                child: Row(
                   children: [
-                    Text("Next Dose", style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary)),
-                    const SizedBox(height: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8)
+                        color: color.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Text(
-                        med['nextDose'], 
-                        style: AppTypography.titleSmall.copyWith(color: AppColors.success)
+                      child: Icon(CupertinoIcons.capsule_fill, color: color, size: 28),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(med['name'] ?? 'Unknown', style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text("${med['dosage']} • ${med['frequency'] ?? 'Daily'}", style: AppTypography.bodyMedium.copyWith(color: Colors.white60)),
+                        ],
                       ),
                     ),
+                    // Checkbox for 'Taken'
+                    Container(
+                      decoration: BoxDecoration(
+                         shape: BoxShape.circle,
+                         border: Border.all(color: AppColors.success.withOpacity(0.5))
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.check, size: 20, color: AppColors.success),
+                        onPressed: () {
+                           // Future: Mark as taken logic
+                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Dose logged!")));
+                        },
+                      ),
+                    )
                   ],
-                )
-              ],
-            ),
+                ),
+              );
+            },
           );
         },
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 100),
-        child: AuraFAB(
-          heroTag: "medication_add_fab",
-          onPressed: _scanMedication,
-          icon: CupertinoIcons.add,
-          label: "Add Med",
-        ),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            heroTag: 'schedule',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MedicationScheduleScreen()),
+              );
+            },
+            backgroundColor: AppColors.accent,
+            child: const Icon(CupertinoIcons.clock_fill, color: Colors.white),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: AuraFAB(
+              icon: CupertinoIcons.add,
+              onPressed: _showAddMedicationSheet,
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  Color _getDeterministicColor(String name) {
+    final colors = [
+      AppColors.primary,
+      AppColors.accent,
+      const Color(0xFFFF4081),
+      const Color(0xFFFFD740),
+      const Color(0xFF69F0AE)
+    ];
+    return colors[name.length % colors.length];
   }
 }

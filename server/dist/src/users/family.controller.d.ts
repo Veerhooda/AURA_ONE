@@ -9,9 +9,9 @@ export declare class FamilyController {
         ward: string;
         lastVitals: {
             id: number;
-            type: string;
-            patientId: number;
             timestamp: Date;
+            patientId: number;
+            type: string;
             value: number;
             unit: string;
         };

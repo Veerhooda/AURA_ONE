@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
+const doctor_module_1 = require("./doctor/doctor.module");
 const auth_module_1 = require("./auth/auth.module");
 const prisma_module_1 = require("./prisma/prisma.module");
 const users_module_1 = require("./users/users.module");
@@ -17,12 +18,15 @@ const navigation_module_1 = require("./navigation/navigation.module");
 const ai_module_1 = require("./ai/ai.module");
 const events_module_1 = require("./events/events.module");
 const medication_module_1 = require("./medication/medication.module");
+const chat_module_1 = require("./chat/chat.module");
+const appointments_module_1 = require("./appointments/appointments.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            doctor_module_1.DoctorModule,
             auth_module_1.AuthModule,
             prisma_module_1.PrismaModule,
             users_module_1.UsersModule,
@@ -31,7 +35,9 @@ exports.AppModule = AppModule = __decorate([
             navigation_module_1.NavigationModule,
             ai_module_1.AiModule,
             events_module_1.EventsModule,
-            medication_module_1.MedicationModule
+            medication_module_1.MedicationModule,
+            chat_module_1.ChatModule,
+            appointments_module_1.AppointmentsModule
         ],
         controllers: [],
         providers: [],

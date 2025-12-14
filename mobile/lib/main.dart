@@ -7,9 +7,14 @@ import 'core/widgets/emergency_overlay.dart';
 
 
 import 'package:flutter/foundation.dart';
+import 'services/notification_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize NotificationService
+  await NotificationService().initialize();
+  await NotificationService().requestPermissions();
   
   final socketUrl = (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) 
       ? 'http://10.0.2.2:3001' 

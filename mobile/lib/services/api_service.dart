@@ -1,23 +1,22 @@
 import 'dart:convert';
+import 'package:aura_one/features/doctor/domain/models/doctor.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import 'package:flutter/foundation.dart';
 
 class ApiService {
+  final http.Client _client;
+
+  ApiService({http.Client? client}) : _client = client ?? http.Client();
+
   static String get baseUrl {
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       return 'http://10.0.2.2:3001';
     }
     return 'http://localhost:3001';
   }
+
   final _storage = const FlutterSecureStorage();
-
-  // Singleton pattern
-  static final ApiService _instance = ApiService._internal();
-  factory ApiService() => _instance;
-  ApiService._internal();
-
   Future<String?> getToken() async {
     return await _storage.read(key: 'jwt_token');
   }
@@ -27,7 +26,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await http.post(
+    final response = await _client.post(
       Uri.parse('$baseUrl/auth/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
@@ -63,13 +62,19 @@ class ApiService {
     return idStr != null ? int.tryParse(idStr) : null;
   }
 
+  // Stub for patient twin data used in some screens
+  Future<Map<String, dynamic>> getPatientTwin(int patientId) async {
+    // TODO: Replace with actual implementation when backend provides twin data.
+    return {};
+  }
+
   Future<void> updateProfile({
     required String weight, 
     required String status, 
     required String symptoms
   }) async {
     final token = await getToken();
-    final response = await http.post(
+    final response = await _client.post(
       Uri.parse('$baseUrl/patients/profile'),
       headers: {
         'Content-Type': 'application/json',
@@ -93,7 +98,7 @@ class ApiService {
     String password, 
     {String? weight, String? status, String? symptoms}
   ) async {
-      final response = await http.post(
+      final response = await _client.post(
       Uri.parse('$baseUrl/auth/register'),
       headers: {'Content-Type': 'application/json'},
       // Default to PATIENT role for self-registration
@@ -114,21 +119,71 @@ class ApiService {
       throw Exception('Failed to register: ${response.body}');
     }
   }
-
-  Future<Map<String, dynamic>> getPatientTwin(int id) async {
+    // Doctor Profile
+  Future<Doctor> getDoctorProfile({required int doctorId}) async {
     final token = await getToken();
-    final response = await http.get(
-      Uri.parse('$baseUrl/patients/$id/twin'),
+    final response = await _client.get(
+      Uri.parse('$baseUrl/doctors/$doctorId'),
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      return Doctor.fromJson(data);
     } else {
-      throw Exception('Failed to fetch twin data');
+      throw Exception('Failed to fetch doctor profile');
+    }
+  }
+
+  // Update doctor profile using a Doctor object
+  Future<void> updateDoctorProfileWithDoctor({
+    required int doctorId,
+    required Doctor doctor,
+  }) async {
+    final token = await getToken();
+    final body = jsonEncode({
+      'name': doctor.name,
+      'specialty': doctor.specialty,
+      'email': doctor.email,
+    });
+    final response = await _client.put(
+      Uri.parse('$baseUrl/doctors/$doctorId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: body,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update doctor profile');
+    }
+  }
+
+  // Existing method (kept for backward compatibility)
+  Future<void> updateDoctorProfile({
+    required int doctorId,
+    String? name,
+    String? specialty,
+    String? email,
+  }) async {
+    final token = await getToken();
+    final body = jsonEncode({
+      if (name != null) 'name': name,
+      if (specialty != null) 'specialty': specialty,
+      if (email != null) 'email': email,
+    });
+    final response = await _client.put(
+      Uri.parse('$baseUrl/doctors/$doctorId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: body,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update doctor profile');
     }
   }
 
@@ -235,7 +290,7 @@ class ApiService {
     }
   }
 
-  Future<void> addMedication(int id, String name, String dosage) async {
+  Future<void> addMedication(int id, String name, String dosage, {String frequency = 'Daily'}) async {
     final token = await getToken();
     final response = await http.post(
       Uri.parse('$baseUrl/patients/$id/medications'),
@@ -243,7 +298,11 @@ class ApiService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode({'name': name, 'dosage': dosage}),
+      body: jsonEncode({
+        'name': name, 
+        'dosage': dosage,
+        'frequency': frequency
+      }),
     );
     if (response.statusCode != 201) {
        throw Exception('Failed to add medication');
@@ -264,4 +323,173 @@ class ApiService {
        throw Exception('Failed to add history');
     }
   }
+  Future<List<dynamic>> getPatientReports(int patientId) async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/patients/$patientId/reports'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      return [];
+    }
+  }
+
+  Future<void> uploadPatientReport(int patientId, dynamic file) async {
+    // Mock Upload
+    final token = await getToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/patients/$patientId/reports'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'filename': 'test_upload.pdf'}),
+    );
+
+    if (response.statusCode != 201) {
+       throw Exception('Failed to upload report');
+    }
+  }
+
+  Future<List<dynamic>> getChatHistory(int userId, int otherUserId) async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/chat/history/$userId/$otherUserId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      return [];
+    }
+  }
+
+  // Appointments
+  Future<List<dynamic>> getAppointments(int patientId) async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/appointments/patient/$patientId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      return [];
+    }
+  }
+
+  Future<List<dynamic>> getAllDoctors() async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/appointments/doctors'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      return [];
+    }
+  }
+
+  Future<List<String>> getAvailableSlots(int doctorId, String date) async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/appointments/slots/$doctorId/$date'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> slots = jsonDecode(response.body);
+      return slots.cast<String>();
+    } else {
+      return [];
+    }
+  }
+
+  Future<void> bookAppointment({
+    required int patientId,
+    required int doctorId,
+    required String dateTime,
+    required String type,
+    String? notes,
+  }) async {
+    final token = await getToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/appointments'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'patientId': patientId,
+        'doctorId': doctorId,
+        'dateTime': dateTime,
+        'type': type,
+        'notes': notes,
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to book appointment');
+    }
+  }
+
+  Future<void> cancelAppointment(int appointmentId) async {
+    final token = await getToken();
+    await http.delete(
+      Uri.parse('$baseUrl/appointments/$appointmentId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+  }
+
+  // Manual Vitals
+  Future<void> addManualVital({
+    required int patientId,
+    required String type,
+    required double value,
+    required String unit,
+  }) async {
+    final token = await getToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/patients/$patientId/vitals/manual'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'type': type,
+        'value': value,
+        'unit': unit,
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to add vital');
+    }
+  }
 }
+

@@ -8,6 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { PrismaService } from '../prisma/prisma.service';
+import { ChatService } from '../chat/chat.service';
 
 @WebSocketGateway({
   cors: {
@@ -20,7 +21,10 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
   // Throttle updates to DB to avoid spam (Map<patientId, lastUpdateTime>)
   private lastUpdate = new Map<number, number>();
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private chatService: ChatService,
+  ) {}
 
   afterInit(server: Server) {
     console.log('EventsGateway initialized');
@@ -89,6 +93,7 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
         }
     }
   }
+  
   @SubscribeMessage('patient.emergency')
   handlePatientEmergency(client: Socket, data: any) {
     console.log(`[EMERGENCY] Received alert for Patient ${data.patientId}:`, data);
@@ -98,5 +103,29 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       this.server.to(`patient_${data.patientId}`).emit('patient.emergency', data);
       console.log(`[EMERGENCY] Broadcasted to room patient_${data.patientId}`);
     }
+  }
+
+  @SubscribeMessage('sendMessage')
+  handleSendMessage(client: Socket, data: { senderId: number; recipientId: number; message: string }) {
+    console.log(`[CHAT] Message from ${data.senderId} to ${data.recipientId}: ${data.message}`);
+    
+    // Store message in chat service
+    const savedMessage = this.chatService.addMessage(data.senderId, data.recipientId, data.message);
+    
+    // Emit to recipient's user room (assuming users join rooms like "user_<userId>")
+    this.server.to(`user_${data.recipientId}`).emit('receiveMessage', savedMessage);
+    
+    // Also send back to sender for confirmation
+    client.emit('receiveMessage', savedMessage);
+    
+    return { success: true, message: savedMessage };
+  }
+
+  @SubscribeMessage('subscribe.user')
+  handleSubscribeUser(client: Socket, data: { userId: number }) {
+    const room = `user_${data.userId}`;
+    client.join(room);
+    console.log(`Client ${client.id} subscribed to user ${data.userId}`);
+    return { event: 'user.subscribed', data: { room } };
   }
 }

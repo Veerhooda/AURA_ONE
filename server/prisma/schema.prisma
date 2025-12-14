@@ -60,6 +60,7 @@ model Patient {
   prescriptions Prescription[]
   alerts        Alert[]
   relations     UserPatientRelation[]
+  appointments  Appointment[]
 }
 
 model Vitals {
@@ -153,4 +154,30 @@ model Alert {
   timestamp DateTime @default(now())
 
   patient   Patient  @relation(fields: [patientId], references: [id])
+}
+
+model Doctor {
+  id           Int           @id @default(autoincrement())
+  name         String
+  specialty    String
+  email        String        @unique
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+}
+
+model Appointment {
+  id        Int      @id @default(autoincrement())
+  patientId Int
+  doctorId  Int
+  dateTime  DateTime
+  status    String   @default("scheduled") // scheduled, completed, cancelled
+  type      String   @default("consultation") // consultation, follow-up, emergency
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id])
+  doctor  Doctor  @relation(fields: [doctorId], references: [id])
+
+  @@map("appointments")
 }

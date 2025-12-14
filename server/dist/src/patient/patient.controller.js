@@ -50,6 +50,15 @@ let PatientController = class PatientController {
     getPatientHistory(id) {
         return this.patientService.getPatientHistory(id);
     }
+    getPatientReports(id) {
+        return this.patientService.getPatientReports(id);
+    }
+    async uploadReport(id, body) {
+        return this.patientService.uploadReport(id, body.fileName, body.fileType);
+    }
+    async addManualVital(id, body) {
+        return this.patientService.addManualVital(id, body.type, body.value, body.unit);
+    }
 };
 exports.PatientController = PatientController;
 __decorate([
@@ -135,6 +144,32 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], PatientController.prototype, "getPatientHistory", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Get)(':id/reports'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], PatientController.prototype, "getPatientReports", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)(':id/reports'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], PatientController.prototype, "uploadReport", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)(':id/vitals/manual'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], PatientController.prototype, "addManualVital", null);
 exports.PatientController = PatientController = __decorate([
     (0, common_1.Controller)('patients'),
     __metadata("design:paramtypes", [patient_service_1.PatientService])

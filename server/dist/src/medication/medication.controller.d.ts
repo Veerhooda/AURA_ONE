@@ -3,18 +3,18 @@ export declare class MedicationController {
     private readonly medicationService;
     constructor(medicationService: MedicationService);
     getAll(): Promise<{
-        name: string;
         id: number;
         createdAt: Date;
+        name: string;
         description: string | null;
         sideEffects: string | null;
         interactions: string | null;
     }[]>;
     getPrescriptions(id: number): Promise<({
         medication: {
-            name: string;
             id: number;
             createdAt: Date;
+            name: string;
             description: string | null;
             sideEffects: string | null;
             interactions: string | null;
@@ -23,12 +23,12 @@ export declare class MedicationController {
         id: number;
         createdAt: Date;
         patientId: number;
-        medicationId: number;
         dosage: string;
         frequency: string;
         startDate: Date;
         endDate: Date | null;
         active: boolean;
+        medicationId: number;
     })[]>;
     prescribe(patientId: number, body: {
         medicationId: number;
@@ -39,12 +39,12 @@ export declare class MedicationController {
             id: number;
             createdAt: Date;
             patientId: number;
-            medicationId: number;
             dosage: string;
             frequency: string;
             startDate: Date;
             endDate: Date | null;
             active: boolean;
+            medicationId: number;
         };
         warnings: string[];
     }>;

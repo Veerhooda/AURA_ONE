@@ -8,6 +8,8 @@ export declare class PatientService {
             mrn: string;
             bed: string;
             ward: string;
+            weight: string;
+            symptoms: string;
         };
         status: string;
         diagnosis: string;
@@ -29,6 +31,7 @@ export declare class PatientService {
     private getLatestVital;
     createPatient(data: any): Promise<{
         id: number;
+        createdAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -43,22 +46,22 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         updatedAt: Date;
     }>;
     findAll(): Promise<({
         user: {
             id: number;
+            email: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
-            email: string;
             password: string;
-            name: string;
             blockchainId: string | null;
             role: import(".prisma/client").$Enums.Role;
         };
     } & {
         id: number;
+        createdAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -73,11 +76,11 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         updatedAt: Date;
     })[]>;
     reportPain(patientId: number, level: number): Promise<{
         id: number;
+        createdAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -92,11 +95,11 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         updatedAt: Date;
     }>;
     updateProfileByUserId(userId: number, data: any): Promise<{
         id: number;
+        createdAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -111,11 +114,11 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         updatedAt: Date;
     }>;
     updateStatus(id: number, status: string): Promise<{
         id: number;
+        createdAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -130,7 +133,6 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         updatedAt: Date;
     }>;
     addMedication(patientId: number, data: any): Promise<{
@@ -146,6 +148,7 @@ export declare class PatientService {
     }>;
     addHistory(id: number, note: string): Promise<{
         id: number;
+        createdAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -160,7 +163,6 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         updatedAt: Date;
     }>;
     getPatientMedications(patientId: number): Promise<{
@@ -176,4 +178,24 @@ export declare class PatientService {
         type: string;
         note: string;
     }[]>;
+    getPatientReports(patientId: number): Promise<{
+        id: number;
+        name: string;
+        type: string;
+        date: string;
+        size: string;
+        url: string;
+    }[]>;
+    uploadReport(patientId: number, fileName: string, fileType: string): Promise<{
+        message: string;
+        fileId: number;
+    }>;
+    addManualVital(patientId: number, type: string, value: number, unit: string): Promise<{
+        id: number;
+        timestamp: Date;
+        patientId: number;
+        type: string;
+        value: number;
+        unit: string;
+    }>;
 }

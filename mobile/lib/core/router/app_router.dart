@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../features/doctor/presentation/screens/doctor_profile_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/screens/role_selection_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
@@ -76,6 +78,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/navigation',
       builder: (context, state) => const NavigationMapScreen(),
+    ),
+    GoRoute(
+      path: '/doctor/profile/:id',
+      builder: (context, state) {
+        final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+        return DoctorProfileScreen(doctorId: id);
+      },
     ),
     GoRoute(
       path: '/doctor/home',

@@ -9,13 +9,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EventsModule = void 0;
 const common_1 = require("@nestjs/common");
 const events_gateway_1 = require("./events.gateway");
+const prisma_module_1 = require("../prisma/prisma.module");
+const chat_module_1 = require("../chat/chat.module");
 let EventsModule = class EventsModule {
 };
 exports.EventsModule = EventsModule;
 exports.EventsModule = EventsModule = __decorate([
     (0, common_1.Module)({
+        imports: [prisma_module_1.PrismaModule, chat_module_1.ChatModule],
         providers: [events_gateway_1.EventsGateway],
-        exports: [events_gateway_1.EventsGateway],
     })
 ], EventsModule);
 //# sourceMappingURL=events.module.js.map

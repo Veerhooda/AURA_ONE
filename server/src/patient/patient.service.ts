@@ -225,4 +225,53 @@ export class PatientService {
       };
     });
   }
+  async getPatientReports(patientId: number) {
+    // Mock Data - In real app, fetch from S3/DB
+    return [
+        {
+            id: 1,
+            name: 'Blood Test Report.pdf',
+            type: 'PDF',
+            date: '2023-10-25',
+            size: '1.2 MB',
+            url: 'https://example.com/report1.pdf' 
+        },
+        {
+            id: 2,
+            name: 'Chest X-Ray.jpg',
+            type: 'IMAGE',
+            date: '2023-11-02',
+            size: '3.5 MB',
+            url: 'https://example.com/xray.jpg'
+        },
+        {
+            id: 3,
+            name: 'MRI Scan - Head.zip',
+            type: 'ZIP',
+            date: '2023-12-10',
+            size: '15.0 MB',
+            url: 'https://example.com/mri.zip'
+        }
+    ];
+  }
+
+  async uploadReport(patientId: number, fileName: string, fileType: string) {
+      // Mock implementation
+      return {
+          message: 'File uploaded successfully',
+          fileId: Math.floor(Math.random() * 1000)
+      };
+  }
+
+  async addManualVital(patientId: number, type: string, value: number, unit: string) {
+    return this.prisma.vitals.create({
+      data: {
+        patientId,
+        type,
+        value,
+        unit,
+        timestamp: new Date(),
+      },
+    });
+  }
 }
