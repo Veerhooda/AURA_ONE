@@ -10,6 +10,12 @@ The primary interface for Patients and Doctors in the AURA ONE ecosystem. Built 
   - Real-time vitals monitoring (Heart Rate, SpO2, BP) with **premium gradient visualizations**.
   - Medication tracking with progress bars.
   - "Current Status" banner for hospital admission details.
+- **Appointments & OPD**:
+  - Book appointments with doctors.
+  - View upcoming and past appointment history.
+- **Vitals Tracking**:
+  - Manual entry logging.
+  - Real-time visualization from connected hardware.
 - **Indoor Navigation**:
   - Interactive hospital map with A\* pathfinding.
   - Search for Points of Interest (Reception, Labs, Wards).
@@ -17,9 +23,13 @@ The primary interface for Patients and Doctors in the AURA ONE ecosystem. Built 
 
 ### For Doctors
 
+- **Profile Management**:
+  - View and edit professional details (Specialty, Bio).
 - **Patient Monitor**:
   - Live streaming of patient waveforms.
   - Vital signs alerts and history.
+- **Appointments**:
+  - View daily schedule and patient booking details.
 
 ## 🛠️ Setup & Running
 

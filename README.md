@@ -123,5 +123,11 @@ npm run dev
   - **Gradient Graphs**: Beautiful, medical-grade visualizations with fill and glow effects.
   - **Glassmorphism**: Modern cards with subtle depth and shadows.
   - **Polished Typography**: Clean, legible hierarchy using the "Outfit" font family.
+- **Appointments System**:
+  - Full booking flow for patients.
+  - Doctor availability and verify past/upcoming visits.
+- **Enhanced Mobile Experience**:
+  - **Manual Vitals Entry**: Log health data manually alongside hardware streams.
+  - **Doctor Profiles**: Comprehensive view of doctor credentials and specialties.
 - **Smart Navigation**: Percentage-based coordinate mapping for accurate indoor wayfinding.
 - **Digital Twin**: Live syncing of patient health state across devices.

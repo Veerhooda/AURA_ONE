@@ -4,9 +4,10 @@ import 'package:aura_one/features/doctor/domain/models/doctor.dart';
 import 'package:aura_one/core/widgets/glassmorphic_container.dart';
 
 class DoctorProfileScreen extends StatefulWidget {
-  const DoctorProfileScreen({Key? key, required this.doctorId}) : super(key: key);
+  const DoctorProfileScreen({Key? key, required this.doctorId, this.apiService}) : super(key: key);
 
   final int doctorId;
+  final ApiService? apiService;
 
   @override
   State<DoctorProfileScreen> createState() => _DoctorProfileScreenState();
@@ -19,7 +20,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _doctorFuture = ApiService().getDoctorProfile(doctorId: widget.doctorId);
+    _doctorFuture = (widget.apiService ?? ApiService()).getDoctorProfile(doctorId: widget.doctorId);
     _doctorFuture.then((doc) => setState(() => _doctor = doc));
   }
 
@@ -77,13 +78,19 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                             errorMessage = null; // Clear previous error
                           });
                           try {
-                            await ApiService().updateDoctorProfileWithDoctor(
+                            await (widget.apiService ?? ApiService()).updateDoctorProfileWithDoctor(
                               doctorId: widget.doctorId,
                               doctor: Doctor(
                                 id: _doctor!.id,
                                 name: nameController.text,
                                 specialty: specialtyController.text,
                                 email: emailController.text,
+                                about: _doctor!.about,
+                                yearsExperience: _doctor!.yearsExperience,
+                                rating: _doctor!.rating,
+                                patientsProcessed: _doctor!.patientsProcessed,
+                                imageUrl: _doctor!.imageUrl,
+                                availability: _doctor!.availability,
                               ),
                             );
                             Navigator.of(context).pop(true); // Success, indicate update
@@ -115,7 +122,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
     // After dialog closes, refresh profile if an update occurred
     if (didUpdate == true) {
       setState(() {
-        _doctorFuture = ApiService().getDoctorProfile(doctorId: widget.doctorId);
+        _doctorFuture = (widget.apiService ?? ApiService()).getDoctorProfile(doctorId: widget.doctorId);
         _doctorFuture.then((doc) => _doctor = doc);
       });
     }

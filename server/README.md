@@ -39,5 +39,16 @@ npm run start
 - **Models**:
   - `User`: Auth & Profile.
   - `Patient`: Medical record, linked to User.
+  - `Doctor`: Doctor profile and availability.
+  - `Appointment`: Scheduling and status.
   - `Vitals`: Historical time-series data.
   - `Medication`: Schedules and dosages.
+
+## 🔌 API Modules
+
+- **Auth**: Login, Register (JWT).
+- **Patient**: Profile, History, Vitals, Medications.
+- **Doctor**: Profile management, Patient lists.
+- **Appointments**: Booking, Rescheduling, Doctor availability.
+- **Chat**: Real-time messaging history.
+- **AI**: Vision and Voice command processing.
