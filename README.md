@@ -67,16 +67,30 @@ docker-compose up -d
 
 ### 2. Backend Server
 
-The server coordinates everything on **Port 3001**.
+The server coordinates everything on **Port 3001** and must be accessible on your LAN.
 
 ```bash
 cd server
 npm install
 npx prisma generate
-npm run start
+npx prisma db push  # Set up database schema
+npm run start:dev   # Development mode with hot-reload
 ```
 
-- _Note_: The server IP (e.g., `172.20.10.3` or `10.0.2.2` for Android emulator) is needed for the apps to connect.
+**Important - Network Setup:**
+
+1. Find your Mac's LAN IP: `ifconfig | grep "inet " | grep -v 127.0.0.1`
+2. Server will bind to `0.0.0.0:3001` (all interfaces)
+3. Update these files with your IP (e.g., `172.20.10.3`):
+   - `mobile/lib/services/api_service.dart` - Update `baseUrl`
+   - `mobile/lib/main.dart` - Update `socketUrl`
+   - `health_data/lib/main.dart` - Update `_ipController` default value
+
+**Seeding Data:**
+
+```bash
+npx ts-node server/create-doctor.ts  # Create sample doctor account
+```
 
 ### 3. Health Data Simulator (The "Medical Monitor")
 
@@ -118,16 +132,40 @@ npm run dev
 
 ## ✨ Key Features
 
-- **Real-time Vitals Sync**: Sub-second latency streaming of waveforms from Simulator -> Server (Port 3001) -> Dashboard.
+- **AI Recovery Analysis**:
+
+  - **n8n Workflow**: Automated medical summary generation using Groq (Llama 3)
+  - **Visual Graphs**: QuickChart-powered recovery trend visualization
+  - **Real-time Generation**: Click "Generate" to analyze patient history
+  - Setup: Import `/Patient_Summary_Graph/Patient Summary + Recovery Graph.json` into n8n (http://localhost:5678)
+
+- **Real-time Vitals Monitoring**:
+
+  - Sub-second latency streaming via Socket.IO
+  - Live ECG, SpO2, and BP waveforms
+  - Simulator → Server → Mobile Dashboard sync
+  - Emergency alert system with instant doctor notifications
+
 - **Premium UI**:
-  - **Gradient Graphs**: Beautiful, medical-grade visualizations with fill and glow effects.
-  - **Glassmorphism**: Modern cards with subtle depth and shadows.
-  - **Polished Typography**: Clean, legible hierarchy using the "Outfit" font family.
-- **Appointments System**:
-  - Full booking flow for patients.
-  - Doctor availability and verify past/upcoming visits.
-- **Enhanced Mobile Experience**:
-  - **Manual Vitals Entry**: Log health data manually alongside hardware streams.
-  - **Doctor Profiles**: Comprehensive view of doctor credentials and specialties.
-- **Smart Navigation**: Percentage-based coordinate mapping for accurate indoor wayfinding.
-- **Digital Twin**: Live syncing of patient health state across devices.
+
+  - **Performance Optimized**: Removed expensive BackdropFilter widgets to eliminate GPU timeouts
+  - **Gradient Graphs**: Medical-grade visualizations with fill effects
+  - **Glassmorphism**: Modern translucent cards (using simple opacity, not blur)
+  - **Polished Typography**: Clean hierarchy using "Outfit" font
+
+- **Healthcare Management**:
+
+  - **Appointments**: Full booking flow with doctor availability
+  - **Prescriptions**: Medication tracking with reminders
+  - **Medical History**: Timeline view with reports
+  - **Manual Vitals Entry**: Log health data offline
+
+- **Communication**:
+
+  - **Real-time Chat**: Doctor-patient messaging via Socket.IO
+  - **Emergency Alerts**: One-tap critical notifications
+
+- **Smart Features**:
+  - **Indoor Navigation**: A\* pathfinding on hospital maps
+  - **Digital Twin**: Live health state synchronization
+  - **Accessibility Mode**: High-contrast UI for accessibility

@@ -23,6 +23,9 @@ let PatientController = class PatientController {
     getDigitalTwin(id) {
         return this.patientService.getDigitalTwin(id);
     }
+    getRecoveryGraph(id) {
+        return this.patientService.generateRecoveryGraph(id);
+    }
     findAll() {
         return this.patientService.findAll();
     }
@@ -69,6 +72,14 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], PatientController.prototype, "getDigitalTwin", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Get)(':id/recovery-graph'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], PatientController.prototype, "getRecoveryGraph", null);
 __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Get)(),

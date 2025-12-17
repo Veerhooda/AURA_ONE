@@ -8,6 +8,7 @@ import '../../../../services/api_service.dart';
 import '../../../../services/socket_service.dart';
 import '../widgets/vitals_card.dart';
 import '../widgets/vitals_graphs.dart';
+import '../widgets/recovery_graph_card.dart';
 import '../../../chat/presentation/screens/chat_screen.dart';
 
 class DoctorPatientScreen extends StatefulWidget {
@@ -194,31 +195,7 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with TickerPr
       builder: (context, child) {
         return Scaffold(
           backgroundColor: _bgAnimation.value,
-          body: NestedScrollView(
-            headerSliverBuilder: (context, _) => [
-               SliverAppBar(
-                 expandedHeight: 220,
-                 floating: false,
-                 pinned: true,
-                 backgroundColor: Colors.transparent,
-                 flexibleSpace: FlexibleSpaceBar(
-                   background: _buildHeader(patientName, status, statusColor, isAdmitted),
-                 ),
-                 bottom: PreferredSize(
-                   preferredSize: const Size.fromHeight(60),
-                   child: _buildGlassTabBar(),
-                 ),
-               ),
-            ],
-            body: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildOverviewTab(isAdmitted),
-                _buildMedsTab(),
-                _buildHistoryTab(),
-              ],
-            ),
-          ),
+          body: child,
           floatingActionButton: FloatingActionButton(
             onPressed: () {
               Navigator.push(
@@ -236,6 +213,31 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with TickerPr
           ),
         );
       },
+      child: NestedScrollView(
+        headerSliverBuilder: (context, _) => [
+           SliverAppBar(
+             expandedHeight: 220,
+             floating: false,
+             pinned: true,
+             backgroundColor: Colors.transparent,
+             flexibleSpace: FlexibleSpaceBar(
+               background: _buildHeader(patientName, status, statusColor, isAdmitted),
+             ),
+             bottom: PreferredSize(
+               preferredSize: const Size.fromHeight(60),
+               child: _buildGlassTabBar(),
+             ),
+           ),
+        ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildOverviewTab(isAdmitted),
+            _buildMedsTab(),
+            _buildHistoryTab(),
+          ],
+        ),
+      ),
     );
   }
 
@@ -343,9 +345,13 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with TickerPr
             ],
           ),
         ),
+        
+        // AI Recovery Analysis
+        RecoveryGraphCard(patientId: widget.patientId),
+        const SizedBox(height: 24),
 
         StreamBuilder<int>(
-          stream: SocketService().vitalsStream.where((d) => d['patientId'] == widget.patientId).map((d) => d['hr'] as int? ?? 0),
+          stream: SocketService().vitalsStream.where((d) => d['patientId'].toString() == widget.patientId.toString()).map((d) => d['hr'] as int? ?? 0),
           builder: (context, snap) {
              final val = snap.data ?? 0;
              return VitalsCard(
@@ -360,7 +366,7 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with TickerPr
         ),
 
         StreamBuilder<int>(
-          stream: SocketService().vitalsStream.where((d) => d['patientId'] == widget.patientId).map((d) => (d['spo2'] as num?)?.toInt() ?? 0),
+          stream: SocketService().vitalsStream.where((d) => d['patientId'].toString() == widget.patientId.toString()).map((d) => (d['spo2'] as num?)?.toInt() ?? 0),
           builder: (context, snap) {
              final val = snap.data ?? 0;
              return VitalsCard(
@@ -374,13 +380,20 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with TickerPr
           }
         ),
 
-        VitalsCard(
-          title: "Blood Pressure",
-          value: "120/80",
-          unit: "mmHg",
-          icon: CupertinoIcons.waveform_path_ecg,
-          color: Colors.orange,
-          graph: const SizedBox(height: 100, child: BloodPressureGraph(color: Colors.orange, isActive: false)), 
+        StreamBuilder<String>(
+          stream: SocketService().vitalsStream.where((d) => d['patientId'].toString() == widget.patientId.toString()).map((d) => d['bp'] as String? ?? "--/--"),
+          builder: (context, snap) {
+             final val = snap.data ?? "--/--";
+             final isActive = val != "--/--" && val != "120/80"; // 120/80 is default if no variation, but we want to show it only if real
+             return VitalsCard(
+              title: "Blood Pressure",
+              value: val,
+              unit: "mmHg",
+              icon: CupertinoIcons.waveform_path_ecg,
+              color: Colors.orange,
+              graph: SizedBox(height: 100, child: BloodPressureGraph(color: Colors.orange, isActive: isActive)), 
+            );
+          }
         ),
       ],
     );

@@ -21,7 +21,9 @@ class SocketService {
 
     // Remove "http://" or "https://" for socket connection if needed, 
     // but socket_io_client usually handles url parsing.
-    // Assuming baseUrl is like "http://localhost:3000"
+    // Use the provided baseUrl directly
+    // Ideally pass the full URL from main.dart or a config
+    // For now, ensuring we trust the argument passed to init()
     _socket = IO.io(baseUrl, IO.OptionBuilder()
       .setTransports(['websocket'])
       .disableAutoConnect() 
@@ -37,8 +39,12 @@ class SocketService {
     });
     
     _socket!.on('vitals.update', (data) {
+      print('📊 VITALS RECEIVED ON CLIENT: $data');
       if (data != null) {
-        _vitalsController.add(Map<String, dynamic>.from(data));
+        _vitalsController.add(data);
+        print('✅ Vitals added to stream');
+      } else {
+        print('❌ Received null vitals data');
       }
     });
 
@@ -59,7 +65,8 @@ class SocketService {
     _socket!.connect();
   }
 
-  void subscribePatient(int patientId) {
+  void subscribePatient(dynamic patientId) {
+    print('🔔 Subscribing to patient: $patientId');
     _socket?.emit('subscribe.patient', {'patientId': patientId});
   }
 

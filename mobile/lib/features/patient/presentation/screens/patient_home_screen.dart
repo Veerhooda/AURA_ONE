@@ -20,6 +20,7 @@ import '../widgets/vitals_graphs.dart';
 import '../../../chat/presentation/screens/chat_screen.dart';
 import 'appointments_screen.dart';
 import 'manual_vitals_screen.dart';
+import '../widgets/recovery_graph_card.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   const PatientHomeScreen({super.key});
@@ -35,6 +36,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
   late AnimationController _bgController;
   late Animation<Color?> _bgAnimation;
   Future<Map<String, dynamic>>? _patientDataFuture;
+  int? _patientId;
 
   @override
   void initState() {
@@ -69,7 +71,10 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
        });
        
        final id = await ApiService().getPatientId();
-       if (id != null) SocketService().subscribePatient(id);
+       if (id != null) {
+          _patientId = id;
+          SocketService().subscribePatient(id);
+       }
     }
   }
 
@@ -168,6 +173,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
         // Vitals Logic
         final hr = (data['current_state']?['heart_rate'] as num?)?.toInt() ?? 0;
         final spo2 = (data['current_state']?['spo2'] as num?)?.toInt() ?? 0;
+        final bp = data['current_state']?['blood_pressure']?.toString() ?? "--/--";
 
         return RefreshIndicator(
           onRefresh: () async {
@@ -183,24 +189,19 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
                 backgroundColor: Colors.transparent,
                 floating: false,
                 pinned: true,
-                flexibleSpace: ClipRRect(
-                  child: BackdropFilter(
-                    filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: FlexibleSpaceBar(
-                      titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-                      title: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(_greeting, style: AppTypography.headlineMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-                          if (_mrn.isNotEmpty)
-                            Text("ID: $_mrn", style: TextStyle(color: Colors.white54, fontSize: 10)),
-                        ],
-                      ),
-                      background: Container(color: Colors.black.withOpacity(0.2)),
-                    ),
+                flexibleSpace: FlexibleSpaceBar(
+                  titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+                  title: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(_greeting, style: AppTypography.headlineMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                      if (_mrn.isNotEmpty)
+                        Text("ID: $_mrn", style: TextStyle(color: Colors.white54, fontSize: 10)),
+                    ],
                   ),
+                  background: Container(color: Colors.black.withOpacity(0.6)),
                 ),
                 actions: [
                   IconButton(
@@ -238,6 +239,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
                           final live = snap.data;
                           final currentHr = live != null ? (live['hr'] as num?)?.toInt() ?? hr : hr;
                           final currentSpo2 = live != null ? (live['spo2'] as num?)?.toInt() ?? spo2 : spo2;
+                          final currentBp = live != null ? live['bp']?.toString() ?? bp : bp;
                           
                           return Column(
                             children: [
@@ -257,12 +259,28 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
                                 color: AppColors.info,
                                 graph: SizedBox(height: 100, child: OxygenGraph(color: AppColors.info, isActive: currentSpo2 > 0)),
                               ),
+                              VitalsCard(
+                                title: "Blood Pressure",
+                                value: currentBp != "--/--" ? currentBp : "--/--",
+                                unit: "mmHg",
+                                icon: CupertinoIcons.waveform_path_ecg,
+                                color: Colors.orange,
+                                graph: SizedBox(height: 100, child: BloodPressureGraph(color: Colors.orange, isActive: currentBp != "--/--" && currentBp != "120/80")), 
+                              ),
                             ],
                           );
                         }
                       ),
 
                       const SizedBox(height: 30),
+
+                      // AI Recovery
+                      if (_patientId != null) ...[
+                        _buildSectionHeader("AI Recovery Analysis", null, null),
+                        const SizedBox(height: 16),
+                        RecoveryGraphCard(patientId: _patientId!),
+                        const SizedBox(height: 30),
+                      ],
 
                       // Quick Actions
                       Text("Quick Actions", style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
@@ -313,18 +331,14 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
   }
 
   Widget _buildGlassStatusCard(String status, String room, bool isAdmitted) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-            boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10))],
-          ),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10))],
+      ),
           child: Row(
             children: [
               Container(
@@ -359,23 +373,17 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
               ),
             ],
           ),
-        ),
-      ),
-    );
+        );
   }
 
   Widget _buildGlassProgressCard(int taken, int total) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
-          ),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -404,24 +412,18 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
               )
             ],
           ),
-        ),
-      ),
-    );
+        );
   }
 
   Widget _buildActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
-            ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -435,9 +437,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
               ],
             ),
           ),
-        ),
-      ),
-    );
+      );
   }
 
   Widget _buildSectionHeader(String title, String? action, VoidCallback? onTap) {

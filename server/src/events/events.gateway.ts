@@ -68,31 +68,39 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       }
     }
 
-    // 1. Broadcast to room immediately for live view
-    if (patientId) {
-        // Inject the resolved ID back into data so clients know
-        data.patientId = patientId; 
-        
-        this.server.to(`patient_${patientId}`).emit('vitals.update', data);
+    if (!patientId) {
+      console.error('❌ No patientId in vitals data');
+      return;
+    }
 
-        // 2. Persist to DB (Throttled: e.g. every 5 seconds)
-        const now = Date.now();
-        const last = this.lastUpdate.get(patientId) || 0;
-        
-        // Save snapshot every 5 seconds to keep "latest known state" fresh in DB
-        if (now - last > 5000) {
-            this.lastUpdate.set(patientId, now);
-            try {
-                await this.prisma.patient.update({
-                    where: { id: parseInt(patientId) },
-                    data: { latestVitals: data }
-                });
-            } catch (e) {
-                console.error(`Failed to persist vitals snapshot for patient ${patientId}`, e);
-            }
-        }
+    // Inject the resolved ID back into data so clients know
+    data.patientId = patientId;
+
+    console.log('📊 VITALS RECEIVED:', JSON.stringify(data, null, 2));
+    console.log(`📡 Broadcasting to room: patient_${patientId}`);
+    
+    // 1. Broadcast to room immediately for live view
+    this.server.to(`patient_${patientId}`).emit('vitals.update', data);
+    console.log('✅ Vitals broadcast complete');
+
+    // 2. Persist to DB (Throttled: e.g. every 5 seconds)
+    const now = Date.now();
+    const last = this.lastUpdate.get(patientId) || 0;
+    
+    // Save snapshot every 5 seconds to keep "latest known state" fresh in DB
+    if (now - last > 5000) {
+      this.lastUpdate.set(patientId, now);
+      try {
+        await this.prisma.patient.update({
+          where: { id: parseInt(patientId) },
+          data: { latestVitals: data }
+        });
+      } catch (e) {
+        console.error(`Failed to persist vitals snapshot for patient ${patientId}`, e);
+      }
     }
   }
+  
   
   @SubscribeMessage('patient.emergency')
   handlePatientEmergency(client: Socket, data: any) {

@@ -16,10 +16,8 @@ void main() async {
   await NotificationService().initialize();
   await NotificationService().requestPermissions();
   
-  final socketUrl = (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) 
-      ? 'http://10.0.2.2:3001' 
-      : 'http://localhost:3001';
-      
+  final socketUrl = 'http://172.20.10.3:3001';
+       
   SocketService().init(socketUrl);
 
   runApp(const ProviderScope(child: AuraOneApp()));

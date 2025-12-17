@@ -51,7 +51,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "{\n\n  \"patient_name\": \"{{ $json.patient_name }}\",\n\n  \"summary\": \"{{ $json.medical_summary }}\",\n\n  \"recovery_graph_url\": \"{{ $json.recovery_data }}\"\n\n}",
+        "responseBody": "{\n\n  \"patient_name\": \"{{ $json.patient_name }}\",\n\n  \"summary\": \"{{ $json.medical_summary }}\",\n\n  \"recovery_graph_url\": \"{{ $json.image_data }}\"\n\n}",
         "options": {}
       },
       "id": "7ba7eeb3-baed-41b8-9d7d-d3cf632f50cc",
@@ -100,7 +100,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// 1. Get the text output from the LLM Chain node\n// Note: Basic LLM Chain usually outputs the answer in a field called 'text'\nconst aiResponse = items[0].json.text; \n\n// 2. Return it as a clean JSON object for the Merge node\nreturn {\n  json: {\n    medical_summary: aiResponse\n  }\n};"
+        "jsCode": "// Get the raw text from the LLM Chain node\nconst llmText = items[0].json.text;\n\n// Clean up markdown code blocks if the LLM added them\nconst cleanText = llmText.replace(/```json/g, '').replace(/```/g, '').trim();\n\ntry {\n  // Parse the JSON string\n  const parsedData = JSON.parse(cleanText);\n  \n  // Extract the actual medical_summary from the parsed object\n  return {\n    json: {\n      medical_summary: parsedData.medical_summary || llmText\n    }\n  };\n} catch (error) {\n  // If parsing fails, return the raw text\n  return {\n    json: {\n      medical_summary: llmText\n    }\n  };\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

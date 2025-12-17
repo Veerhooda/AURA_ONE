@@ -51,22 +51,27 @@ let EventsGateway = class EventsGateway {
                 patientId = patient.id;
             }
         }
-        if (patientId) {
-            data.patientId = patientId;
-            this.server.to(`patient_${patientId}`).emit('vitals.update', data);
-            const now = Date.now();
-            const last = this.lastUpdate.get(patientId) || 0;
-            if (now - last > 5000) {
-                this.lastUpdate.set(patientId, now);
-                try {
-                    await this.prisma.patient.update({
-                        where: { id: parseInt(patientId) },
-                        data: { latestVitals: data }
-                    });
-                }
-                catch (e) {
-                    console.error(`Failed to persist vitals snapshot for patient ${patientId}`, e);
-                }
+        if (!patientId) {
+            console.error('❌ No patientId in vitals data');
+            return;
+        }
+        data.patientId = patientId;
+        console.log('📊 VITALS RECEIVED:', JSON.stringify(data, null, 2));
+        console.log(`📡 Broadcasting to room: patient_${patientId}`);
+        this.server.to(`patient_${patientId}`).emit('vitals.update', data);
+        console.log('✅ Vitals broadcast complete');
+        const now = Date.now();
+        const last = this.lastUpdate.get(patientId) || 0;
+        if (now - last > 5000) {
+            this.lastUpdate.set(patientId, now);
+            try {
+                await this.prisma.patient.update({
+                    where: { id: parseInt(patientId) },
+                    data: { latestVitals: data }
+                });
+            }
+            catch (e) {
+                console.error(`Failed to persist vitals snapshot for patient ${patientId}`, e);
             }
         }
     }

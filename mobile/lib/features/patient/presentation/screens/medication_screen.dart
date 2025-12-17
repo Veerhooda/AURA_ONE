@@ -270,7 +270,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
           ),
           const SizedBox(height: 12),
           Padding(
-            padding: const EdgeInsets.only(bottom: 24),
+            padding: const EdgeInsets.only(bottom: 110),
             child: AuraFAB(
               icon: CupertinoIcons.add,
               onPressed: _showAddMedicationSheet,

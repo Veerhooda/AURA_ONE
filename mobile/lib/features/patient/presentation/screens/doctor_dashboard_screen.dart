@@ -129,18 +129,13 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> with Tick
       backgroundColor: Colors.transparent,
       floating: false,
       pinned: true,
-      flexibleSpace: ClipRRect(
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: FlexibleSpaceBar(
-            titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-            title: Text(
-              "Doctor's Station",
-              style: AppTypography.headlineMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-            background: Container(color: Colors.black.withOpacity(0.2)),
-          ),
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+        title: Text(
+          "Doctor's Station",
+          style: AppTypography.headlineMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        background: Container(color: Colors.black.withOpacity(0.6)),
       ),
       actions: [
         IconButton(
@@ -206,13 +201,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> with Tick
       delegate: _SliverSearchDelegate(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                height: 44, // Fixed height for alignment
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            height: 44, // Fixed height for alignment
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -246,8 +237,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> with Tick
                 ),
               ),
             ),
-          ),
-        ),
       ),
     );
   }
@@ -318,23 +307,19 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> with Tick
           await context.push('/doctor/monitor/$id');
           _loadPatients();
         },
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.03),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  )
-                ]
-              ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              )
+            ]
+          ),
               child: Stack(
                 children: [
                   if (isCritical)
@@ -411,9 +396,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> with Tick
               ),
             ),
           ),
-        ),
-      ),
-    );
+        );
   }
 
   Widget _buildVitalStat(String label, String value, IconData icon, Color color) {

@@ -13,6 +13,12 @@ export class PatientController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get(':id/recovery-graph')
+  getRecoveryGraph(@Param('id', ParseIntPipe) id: number) {
+    return this.patientService.generateRecoveryGraph(id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll() {
       return this.patientService.findAll();

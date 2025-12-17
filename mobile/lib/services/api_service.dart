@@ -10,10 +10,8 @@ class ApiService {
   ApiService({http.Client? client}) : _client = client ?? http.Client();
 
   static String get baseUrl {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:3001';
-    }
-    return 'http://localhost:3001';
+    // Using current LAN IP
+    return 'http://172.20.10.3:3001';
   }
 
   final _storage = const FlutterSecureStorage();
@@ -62,10 +60,40 @@ class ApiService {
     return idStr != null ? int.tryParse(idStr) : null;
   }
 
-  // Stub for patient twin data used in some screens
+  // Get Digital Twin data (Profile, Vitals, Predictions)
   Future<Map<String, dynamic>> getPatientTwin(int patientId) async {
-    // TODO: Replace with actual implementation when backend provides twin data.
-    return {};
+    final token = await getToken();
+    final response = await _client.get(
+      Uri.parse('$baseUrl/patients/$patientId/twin'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load patient twin data');
+    }
+  }
+
+  // Fetch AI Recovery Summary & Graph
+  Future<Map<String, dynamic>> getRecoverySummary(int patientId) async {
+    final token = await getToken();
+    final response = await _client.get(
+      Uri.parse('$baseUrl/patients/$patientId/recovery-graph'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch recovery graph');
+    }
   }
 
   Future<void> updateProfile({

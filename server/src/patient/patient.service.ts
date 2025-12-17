@@ -1,9 +1,59 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import axios from 'axios';
 
 @Injectable()
 export class PatientService {
   constructor(private prisma: PrismaService) {}
+
+  async generateRecoveryGraph(id: number) {
+    const patient = await this.prisma.patient.findUnique({
+      where: { id },
+      include: { user: true }
+    });
+
+    if (!patient) throw new NotFoundException('Patient not found');
+
+    // Construct payload for n8n
+    // Mocking history since we don't store structured severity scores yet
+    const history = [
+      { visit_date: "2024-12-01", severity_score: 8 },
+      { visit_date: "2024-12-05", severity_score: 7 },
+      { visit_date: "2024-12-10", severity_score: 5 },
+      { visit_date: "2024-12-15", severity_score: 3 },
+      { visit_date: "Today", severity_score: patient.status === 'Critical' ? 9 : 2 }
+    ];
+
+    const payload = {
+      patient_name: patient.user.name,
+      patient_id: `P${patient.id.toString().padStart(3, '0')}`,
+      current_symptoms: patient.symptoms || " recovering",
+      patient_history: history
+    };
+
+    try {
+      // Direct call to n8n webhook
+      // Note: In production, URL should be in env vars
+      const n8nWebhookUrl = 'http://localhost:5678/webhook/generate-summary'; 
+      const response = await axios.post(n8nWebhookUrl, payload);
+      
+      console.log("DEBUG: n8n Response Status:", response.status);
+      console.log("DEBUG: n8n Response Data:", JSON.stringify(response.data, null, 2));
+
+      // n8n returns medical_summary and image_data, not summary and recovery_graph_url
+      return {
+        summary: response.data.medical_summary || "No summary available.",
+        recovery_graph_url: response.data.image_data, // Base64 PNG from QuickChart
+      };
+    } catch (error) {
+      console.error("n8n Webhook Error:", error.message);
+      // Fallback response if n8n is down, to prevent app crash
+      return {
+        summary: "Could not generate AI summary. Ensure n8n is running.",
+        recovery_graph_url: null 
+      };
+    }
+  }
 
   async getDigitalTwin(id: number) {
     const patient = await this.prisma.patient.findUnique({
