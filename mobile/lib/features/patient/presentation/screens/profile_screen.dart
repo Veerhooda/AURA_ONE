@@ -19,6 +19,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateMixin {
   bool _isLoading = true;
   Map<String, dynamic> _patientData = {};
+  List<dynamic> _guardians = []; // Family members watching this patient
   
   late AnimationController _breathingController;
   late Animation<Color?> _topColorAnim;
@@ -64,14 +65,14 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   }
 
   Future<void> _fetchProfile() async {
-    // Keep loading true initially, but for refreshes we might want to just silent update
-    // For now, let's just fetch.
     final id = await ApiService().getPatientId();
     if (id != null) {
       final data = await ApiService().getPatientTwin(id);
+      final guardians = await ApiService().getPatientGuardians(id);
       if (mounted) {
         setState(() {
           _patientData = data;
+          _guardians = guardians;
           _isLoading = false;
         });
       }
@@ -241,6 +242,12 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
                       const SizedBox(height: 40),
                       
+                      // FAMILY GUARDIANS SECTION
+                      if (_guardians.isNotEmpty) ...[
+                        _buildFamilySection(),
+                        const SizedBox(height: 40),
+                      ],
+                      
                       // ACTION BUTTONS
                       _buildActionButton(
                         context,
@@ -285,6 +292,89 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
       ),
     );
   }
+
+  Widget _buildFamilySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(CupertinoIcons.person_2_fill, color: AppColors.accent, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              "Family Guardians",
+              style: AppTypography.titleMedium.copyWith(color: Colors.white),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        ...(_guardians.map((g) => _buildGuardianCard(g)).toList()),
+      ],
+    );
+  }
+
+  Widget _buildGuardianCard(Map<String, dynamic> guardian) {
+    final name = guardian['name'] ?? 'Unknown';
+    final relationship = guardian['relationship'] ?? 'Family';
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [AppColors.accent, AppColors.accent.withOpacity(0.5)],
+              ),
+            ),
+            child: CircleAvatar(
+              radius: 22,
+              backgroundColor: AppColors.surface,
+              child: Text(
+                name.isNotEmpty ? name[0].toUpperCase() : '?',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.accent),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  relationship.toUpperCase(),
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.accent,
+                    letterSpacing: 1.2,
+                    fontSize: 10,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(name, style: AppTypography.bodyLarge.copyWith(color: Colors.white)),
+              ],
+            ),
+          ),
+          const Icon(CupertinoIcons.eye_fill, color: AppColors.accent, size: 18),
+        ],
+      ),
+    );
+  }
+
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {

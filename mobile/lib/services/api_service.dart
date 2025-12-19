@@ -519,5 +519,119 @@ class ApiService {
       throw Exception('Failed to add vital');
     }
   }
+
+  // ========== FAMILY DASHBOARD METHODS ==========
+  
+  /// Get list of patients monitored by family member
+  Future<List<dynamic>> getFamilyPatients() async {
+    final token = await getToken();
+    final response = await _client.get(
+      Uri.parse('$baseUrl/family/patients'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    } else {
+      throw Exception('Failed to load family patients: ${response.body}');
+    }
+  }
+
+  /// Create a new patient account and link to family
+  Future<Map<String, dynamic>> createFamilyPatient({
+    required String name,
+    required String email,
+    required String password,
+    required String mrn,
+    required String dob,
+    required String gender,
+    String? weight,
+    required String relationship,
+  }) async {
+    final token = await getToken();
+    final response = await _client.post(
+      Uri.parse('$baseUrl/family/create-patient'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'password': password,
+        'mrn': mrn,
+        'dob': dob,
+        'gender': gender,
+        'weight': weight,
+        'relationship': relationship,
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to create patient: ${response.body}');
+    }
+  }
+
+  /// Add existing patient to family monitoring list
+  Future<void> addExistingPatient({
+    required int patientId,
+    required String relationship,
+  }) async {
+    final token = await getToken();
+    final response = await _client.post(
+      Uri.parse('$baseUrl/family/add-patient'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'patientId': patientId,
+        'relationship': relationship,
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to add patient: ${response.body}');
+    }
+  }
+
+  /// Remove patient from family monitoring list
+  Future<void> removePatient(int patientId) async {
+    final token = await getToken();
+    final response = await _client.delete(
+      Uri.parse('$baseUrl/family/remove/$patientId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to remove patient: ${response.body}');
+    }
+  }
+
+  /// Get family guardians watching a patient (for patient profile)
+  Future<List<dynamic>> getPatientGuardians(int patientId) async {
+    final token = await getToken();
+    final response = await _client.get(
+      Uri.parse('$baseUrl/family/my-guardians/$patientId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    } else {
+      return []; // Return empty if no guardians
+    }
+  }
 }
 
