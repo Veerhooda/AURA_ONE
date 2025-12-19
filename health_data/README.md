@@ -19,15 +19,21 @@ Instead of needing physical ECG sensors during development, this app generates r
 
 ## 🚀 Usage
 
-1. **Connect**:
+1. **Find Server IP**:
+
+   ```bash
+   ifconfig | grep "inet " | grep -v 127.0.0.1
+   ```
+
+2. **Connect**:
 
    - Launch the app.
    - Go to **Settings** (Gear icon).
-   - Enter your **Server IP** (e.g., `http://192.168.1.X:3001` or `http://10.0.2.2:3001`).
+   - Enter your **Server IP** (e.g., `http://172.20.10.3:3001`).
    - Enter the **Patient Email** you want to simulate data for.
    - Tap **Save & Connect**.
 
-2. **Simulate**:
+3. **Simulate**:
    - Return to the main screen.
    - The app will start generating data and emitting `vitals.update` events to the server.
    - Verify connection status in the top bar.
@@ -45,3 +51,7 @@ Instead of needing physical ECG sensors during development, this app generates r
     "timestamp": "..."
   }
   ```
+
+## 📱 Screenshots
+
+📸 **[View Screenshots & Demo Videos](https://drive.google.com/drive/folders/1o_omeA24i_tbTIIRAw_gdf4a5VHOIFEt)**

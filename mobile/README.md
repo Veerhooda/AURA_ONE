@@ -1,6 +1,6 @@
 # AURA ONE Mobile App 📱
 
-The primary interface for Patients and Doctors in the AURA ONE ecosystem. Built with Flutter.
+The primary interface for Patients, Doctors, and Family Members in the AURA ONE ecosystem. Built with Flutter.
 
 ## 🌟 Features
 
@@ -16,10 +16,22 @@ The primary interface for Patients and Doctors in the AURA ONE ecosystem. Built 
 - **Vitals Tracking**:
   - Manual entry logging.
   - Real-time visualization from connected hardware.
+- **AI Recovery Analysis**:
+  - AI-generated medical summaries.
+  - Visual recovery trend graphs.
 - **Indoor Navigation**:
   - Interactive hospital map with A\* pathfinding.
   - Search for Points of Interest (Reception, Labs, Wards).
-- **Family Access**: Manage family access to health data.
+- **Profile**: View family guardians who are monitoring you.
+
+### For Family Members (NEW)
+
+- **Family Dashboard**:
+  - Monitor multiple patients in a single view.
+  - Create new patient accounts with auto-generated MRN.
+  - Link existing patients using Patient ID.
+  - View real-time status (Stable/Warning/Critical).
+  - Quick actions for navigation and chat.
 
 ### For Doctors
 
@@ -40,8 +52,9 @@ The primary interface for Patients and Doctors in the AURA ONE ecosystem. Built 
 
 2. **Configuration**:
 
-   - The app connects to the server URL defined in `lib/services/api_service.dart`.
-   - Default: `http://10.0.2.2:3001` (Android Emulator) or `http://localhost:3001` (iOS Simulator).
+   - Update server IP in `lib/services/api_service.dart`.
+   - Update socket URL in `lib/main.dart`.
+   - Find your LAN IP: `ifconfig | grep "inet " | grep -v 127.0.0.1`
 
 3. **Run**:
    ```bash
@@ -54,3 +67,8 @@ The primary interface for Patients and Doctors in the AURA ONE ecosystem. Built 
 - **State Management**: `setState` for local UI, `StreamBuilder` for real-time socket data.
 - **Navigation**: `go_router` for deep linking and route management.
 - **Networking**: `socket_io_client` for WebSockets, `http` for REST APIs.
+- **Theme**: Custom `AppColors` and `AppTypography` for consistent dark mode styling.
+
+## 📱 Screenshots
+
+📸 **[View Screenshots & Demo Videos](https://drive.google.com/drive/folders/1o_omeA24i_tbTIIRAw_gdf4a5VHOIFEt)**
