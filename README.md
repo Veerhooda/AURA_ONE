@@ -132,6 +132,15 @@ npm run dev
 
 ## ✨ Key Features
 
+- **Family Dashboard** (NEW):
+
+  - **Multi-Patient Monitoring**: Family members can track multiple patients in one view
+  - **Patient Account Creation**: Create new patient accounts directly from family dashboard
+  - **Link Existing Patients**: Add existing patients using their Patient ID
+  - **Real-time Status**: View patient status (Stable/Warning/Critical) with alert counts
+  - **Quick Actions**: One-tap access to vitals, navigation, and chat for each patient
+  - **Bidirectional Sync**: Patients can see their family guardians in their profile
+
 - **AI Recovery Analysis**:
 
   - **n8n Workflow**: Automated medical summary generation using Groq (Llama 3)
@@ -169,3 +178,42 @@ npm run dev
   - **Indoor Navigation**: A\* pathfinding on hospital maps
   - **Digital Twin**: Live health state synchronization
   - **Accessibility Mode**: High-contrast UI for accessibility
+
+---
+
+## 🔐 Test Accounts
+
+Seed the database to create test accounts:
+
+```bash
+cd server
+npx ts-node prisma/seed_user.ts    # Patient: patient@aura.com / password123
+npx ts-node prisma/seed_family.ts  # Family: family@aura.com / family123
+npx ts-node prisma/seed_doctors.ts # Create sample doctors
+```
+
+| Role    | Email             | Password    |
+| ------- | ----------------- | ----------- |
+| Patient | patient@aura.com  | password123 |
+| Family  | family@aura.com   | family123   |
+| Doctor  | (see seed output) | (varies)    |
+
+---
+
+## 📡 API Endpoints
+
+### Family Management
+
+| Method | Endpoint                          | Description                          |
+| ------ | --------------------------------- | ------------------------------------ |
+| GET    | `/family/patients`                | Get all patients monitored by family |
+| POST   | `/family/create-patient`          | Create new patient account           |
+| POST   | `/family/add-patient`             | Link existing patient to family      |
+| DELETE | `/family/remove/:patientId`       | Remove patient from monitoring       |
+| GET    | `/family/my-guardians/:patientId` | Get family members watching patient  |
+
+---
+
+## 📱 Screenshots
+
+The mobile app features a modern dark theme with gradient accents, glassmorphism cards, and smooth animations throughout.
