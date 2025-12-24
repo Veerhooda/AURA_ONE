@@ -10,6 +10,46 @@ The central nervous system of AURA ONE, built with **NestJS**, **Prisma**, and *
 4. **Emergency System**: Real-time alert broadcasting with 100% delivery guarantee architecture.
 5. **Care Task Management**: Nurse dashboard backend with intelligent task prioritization.
 
+## 🏗️ Architecture
+
+```mermaid
+graph TD
+    Client[Client Apps] --> Gateway[API Gateway / NestJS]
+    Gateway --> Auth[Auth Module]
+    Gateway --> Patient[Patient Module]
+    Gateway --> Doctor[Doctor Module]
+    Gateway --> Nurse[Care Module]
+    Gateway --> Chat[Chat Module]
+    Gateway --> Family[Family/User Module]
+    Gateway --> Emer[Emergency Module]
+
+    subgraph "Internal Services"
+        Audit[Audit Service]
+        Consent[Consent Service]
+        Crypto[Encryption Service]
+        Monitor[Monitoring Service]
+    end
+
+    Auth --> Crypto
+    Patient --> Consent
+    Patient --> Audit
+    Emer --> Audit
+    Emer --> Monitor
+
+    Gateway --> Events[Events Gateway / Socket.IO]
+    Events --> Vitals[Vitals Module]
+    Events --> Emer
+```
+
+## 🔐 Internal Security & Compliance
+
+While not exposed via API, these services ensure compliance and security:
+
+- **Audit Service**: Logs all critical actions (access, emergency ack) for HIPAA compliance.
+- **Consent Service**: Manages granular data access permissions (Family/Doctor access).
+- **Encryption Service**: Handles data-at-rest encryption for sensitive fields.
+- **Monitoring Service**: Tracks system health and detects data corruption or anomalies.
+
 ## 🚀 Setup
 
 ```bash

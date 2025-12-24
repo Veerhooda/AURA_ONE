@@ -42,9 +42,34 @@ The system consists of three connected applications:
 5.  **`Patient_Summary_Graph/` (AI Agent)**
     - **Tech**: n8n, Groq (Llama 3), QuickChart.
     - **Role**: Automated medical summary generation.
-    - **Features**: Analyzes patient history to produce text summaries and visual recovery trend graphs via Webhook.
+6.  **`web/` (Web Portal)**
+
+    - **Tech**: React 19, Vite.
+    - **Role**: Admin Dashboard.
+
+7.  **`Patient_Summary_Graph/` (AI Agent)**
+    - **Tech**: n8n, Groq (Llama 3).
+    - **Role**: Automated medical summary generation.
 
 ---
+
+## 🏗️ System Architecture
+
+```mermaid
+graph TD
+    Simulator[Health Data Simulator] -- WebSockets (Vitals) --> Server[AURA ONE Server]
+    Mobile[Patient Mobile App] -- WebSockets (Vitals/Chat) --> Server
+    Mobile -- HTTP (REST API) --> Server
+    Web[Web Dashboard] -- HTTP (REST API) --> Server
+
+    Server -- WebHook --> AI[n8n AI Agent]
+    AI -- JSON --> Server
+
+    subgraph "Backend Core"
+        Server --> DB[(PostgreSQL)]
+        Server --> Redis[(Redis Cache)]
+    end
+```
 
 ## 🚀 Getting Started
 
