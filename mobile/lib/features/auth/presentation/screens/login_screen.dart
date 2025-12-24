@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../services/api_service.dart';
+import '../../../../services/socket_service.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   final String role;
@@ -57,6 +58,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         if (mounted) {
           setState(() => _isLoading = false); 
           
+          if (mounted) {
+            // Re-init socket now that we have a token
+            await SocketService().init(ApiService.baseUrl);
+          }
+
           final userRole = data['user'] != null ? data['user']['role'] : null;
           
           if (userRole == 'PATIENT') {
@@ -71,6 +77,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
              context.go('/doctor/home');
           } else if (userRole == 'FAMILY') { 
              context.go('/family/home'); 
+          } else if (userRole == 'NURSE') {
+             context.go('/nurse/home');
           } else {
              _showError('Unknown role received ($userRole)');
           }

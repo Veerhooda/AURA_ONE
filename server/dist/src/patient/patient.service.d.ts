@@ -1,7 +1,9 @@
 import { PrismaService } from '../prisma/prisma.service';
+import { EventsGateway } from '../events/events.gateway';
 export declare class PatientService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private eventsGateway;
+    constructor(prisma: PrismaService, eventsGateway: EventsGateway);
     generateRecoveryGraph(id: number): Promise<{
         summary: any;
         recovery_graph_url: any;
@@ -49,6 +51,8 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        version: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -79,6 +83,8 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        version: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
     })[]>;
@@ -98,6 +104,8 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        version: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -117,6 +125,8 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        version: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -136,20 +146,12 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        version: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
-    addMedication(patientId: number, data: any): Promise<{
-        id: number;
-        createdAt: Date;
-        patientId: number;
-        dosage: string;
-        frequency: string;
-        startDate: Date;
-        endDate: Date | null;
-        active: boolean;
-        medicationId: number;
-    }>;
+    addMedication(patientId: number, data: any): Promise<void>;
     addHistory(id: number, note: string): Promise<{
         id: number;
         userId: number;
@@ -166,17 +168,12 @@ export declare class PatientService {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        version: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
-    getPatientMedications(patientId: number): Promise<{
-        id: number;
-        name: string;
-        dosage: string;
-        frequency: string;
-        startDate: Date;
-        active: boolean;
-    }[]>;
+    getPatientMedications(patientId: number): Promise<any[]>;
     getPatientHistory(patientId: number): Promise<{
         date: string;
         type: string;
@@ -195,11 +192,6 @@ export declare class PatientService {
         fileId: number;
     }>;
     addManualVital(patientId: number, type: string, value: number, unit: string): Promise<{
-        id: number;
-        timestamp: Date;
-        patientId: number;
-        type: string;
-        value: number;
-        unit: string;
+        success: boolean;
     }>;
 }

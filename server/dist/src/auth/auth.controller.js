@@ -15,24 +15,36 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
+const passport_1 = require("@nestjs/passport");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
-    async login(signInDto) {
-        const user = await this.authService.validateUser(signInDto.email, signInDto.password);
+    async login(body) {
+        const user = await this.authService.validateUser(body.email, body.password);
         if (!user) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
         return this.authService.login(user);
     }
-    async register(createUserDto) {
-        return this.authService.register(createUserDto);
+    async register(body) {
+        return this.authService.register(body);
+    }
+    async refresh(body) {
+        try {
+            const result = await this.authService.refreshAccessToken(body.refresh_token);
+            return result;
+        }
+        catch (error) {
+            throw new common_1.UnauthorizedException('Refresh token invalid or expired');
+        }
+    }
+    async getProfile(req) {
+        return this.authService.getProfile(req.user.userId);
     }
 };
 exports.AuthController = AuthController;
 __decorate([
-    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -46,6 +58,21 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
+__decorate([
+    (0, common_1.Post)('refresh'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "refresh", null);
+__decorate([
+    (0, common_1.Get)('me'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "getProfile", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

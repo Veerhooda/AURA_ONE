@@ -10,13 +10,17 @@ exports.VitalsModule = void 0;
 const common_1 = require("@nestjs/common");
 const vitals_service_1 = require("./vitals.service");
 const vitals_controller_1 = require("./vitals.controller");
+const vitals_validation_service_1 = require("./vitals-validation.service");
+const prisma_module_1 = require("../prisma/prisma.module");
 let VitalsModule = class VitalsModule {
 };
 exports.VitalsModule = VitalsModule;
 exports.VitalsModule = VitalsModule = __decorate([
     (0, common_1.Module)({
-        providers: [vitals_service_1.VitalsService],
-        controllers: [vitals_controller_1.VitalsController]
+        imports: [prisma_module_1.PrismaModule],
+        providers: [vitals_service_1.VitalsService, vitals_validation_service_1.VitalsValidationService],
+        controllers: [vitals_controller_1.VitalsController],
+        exports: [vitals_service_1.VitalsService, vitals_validation_service_1.VitalsValidationService],
     })
 ], VitalsModule);
 //# sourceMappingURL=vitals.module.js.map

@@ -4,14 +4,16 @@ class SocketService {
   io.Socket? _socket;
   bool get isConnected => _socket?.connected ?? false;
 
-  void connect(String ip) {
+  void connect(String ip, String token) {
     if (_socket != null) {
       _socket!.dispose();
     }
 
-    print('Connecting to http://$ip:3001');
+    print('Connecting to http://$ip:3001 with token');
     _socket = io.io('http://$ip:3001', io.OptionBuilder()
         .setTransports(['websocket'])
+        .setAuth({'token': token})
+        .setQuery({'token': token})
         .disableAutoConnect()
         .build());
 

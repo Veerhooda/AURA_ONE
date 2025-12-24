@@ -1,8 +1,52 @@
-import { Controller, Get, Post, Delete, Body, Param, UseGuards, Request, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, UseGuards, Request, HttpException, HttpStatus, ValidationPipe, UsePipes } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody } from '@nestjs/swagger';
 import * as bcrypt from 'bcrypt';
+import { IsString, IsEmail, MinLength, IsEnum, IsOptional, IsDateString, IsInt } from 'class-validator';
+
+// --- DTOs ---
+
+export class CreateFamilyPatientDto {
+  @IsString()
+  @MinLength(2)
+  name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(8, { message: 'Password must be at least 8 characters long' })
+  password: string;
+
+  @IsString()
+  @MinLength(5)
+  mrn: string;
+
+  @IsDateString()
+  dob: string;
+
+  @IsString()
+  @IsEnum(['Male', 'Female', 'Other'])
+  gender: string;
+
+  @IsOptional()
+  @IsString()
+  weight?: string;
+
+  @IsString()
+  @MinLength(2)
+  relationship: string;
+}
+
+export class AddExistingPatientDto {
+  @IsInt()
+  patientId: number;
+
+  @IsString()
+  @MinLength(2)
+  relationship: string;
+}
 
 @ApiTags('family')
 @ApiBearerAuth()
@@ -16,15 +60,12 @@ export class FamilyController {
   async getMyPatients(@Request() req) {
     const userId = req.user.userId;
     
-    // Fetch relations
     const relations = await this.prisma.userPatientRelation.findMany({
       where: { userId },
       include: { 
         patient: {
           include: {
-            user: true, // to get name
-            vitals: { orderBy: { timestamp: 'desc' }, take: 1 },
-            alerts: { where: { resolved: false } }
+            user: true,
           }
         } 
       }
@@ -37,41 +78,17 @@ export class FamilyController {
       name: r.patient.user.name,
       email: r.patient.user.email,
       ward: r.patient.ward,
-      lastVitals: r.patient.vitals[0] || null,
-      activeAlerts: r.patient.alerts.length,
-      status: this._determineStatus(r.patient.vitals[0]),
-      lastSeen: r.patient.vitals[0]?.timestamp || r.patient.updatedAt
+      lastVitals: r.patient.latestVitals || null,
+      activeAlerts: 0, // TODO: Count from emergencyAlerts
+      status: this._determineStatus(r.patient.latestVitals),
+      lastSeen: r.patient.updatedAt
     }));
   }
 
   @Post('create-patient')
   @ApiOperation({ summary: 'Create a new patient account and link to family' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      required: ['name', 'email', 'password', 'mrn', 'dob', 'gender', 'relationship'],
-      properties: {
-        name: { type: 'string' },
-        email: { type: 'string' },
-        password: { type: 'string' },
-        mrn: { type: 'string', description: 'Medical Record Number' },
-        dob: { type: 'string', format: 'date' },
-        gender: { type: 'string', enum: ['Male', 'Female', 'Other'] },
-        weight: { type: 'string' },
-        relationship: { type: 'string' }
-      }
-    }
-  })
-  async createFamilyPatient(@Request() req, @Body() body: {
-    name: string;
-    email: string;
-    password: string;
-    mrn: string;
-    dob: string;
-    gender: string;
-    weight?: string;
-    relationship: string;
-  }) {
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async createFamilyPatient(@Request() req, @Body() body: CreateFamilyPatientDto) {
     const familyUserId = req.user.userId;
 
     // Check if email already exists
@@ -86,62 +103,67 @@ export class FamilyController {
     // Hash the password
     const hashedPassword = await bcrypt.hash(body.password, 10);
 
-    // Create user and patient in transaction
-    const result = await this.prisma.$transaction(async (prisma) => {
-      // Create patient with nested user
-      const patient = await prisma.patient.create({
-        data: {
-          mrn: body.mrn,
-          dob: new Date(body.dob),
-          gender: body.gender,
-          weight: body.weight,
-          user: {
-            create: {
-              name: body.name,
-              email: body.email,
-              password: hashedPassword,
-              role: 'PATIENT'
+    try {
+      // Create user and patient in transaction
+      const result = await this.prisma.$transaction(async (prisma) => {
+        // Create patient with nested user
+        // Note: MRN collision could happen here, handled by catch block
+        const patient = await prisma.patient.create({
+          data: {
+            mrn: body.mrn,
+            dob: new Date(body.dob),
+            gender: body.gender,
+            weight: body.weight,
+            user: {
+              create: {
+                name: body.name,
+                email: body.email,
+                password: hashedPassword,
+                role: 'PATIENT'
+              }
             }
+          },
+          include: { user: true }
+        });
+
+        // Link to family
+        await prisma.userPatientRelation.create({
+          data: {
+            userId: familyUserId,
+            patientId: patient.id,
+            relation: body.relationship
           }
-        },
-        include: { user: true }
+        });
+
+        return patient;
       });
 
-      // Link to family
-      await prisma.userPatientRelation.create({
-        data: {
-          userId: familyUserId,
-          patientId: patient.id,
-          relation: body.relationship
+      return {
+        success: true,
+        patientId: result.id,
+        userId: result.user.id,
+        message: 'Patient account created and linked successfully'
+      };
+
+    } catch (e) {
+      if (e.code === 'P2002') {
+        // Unique constraint violation
+        const target = e.meta?.target;
+        if (Array.isArray(target) && target.includes('mrn')) {
+          throw new HttpException('MRN collision detected. Please try again.', HttpStatus.CONFLICT);
         }
-      });
-
-      return patient;
-    });
-
-    return {
-      success: true,
-      patientId: result.id,
-      userId: result.user.id,
-      message: 'Patient account created and linked successfully'
-    };
+        if (Array.isArray(target) && target.includes('email')) {
+           throw new HttpException('Email already registered', HttpStatus.CONFLICT);
+        }
+      }
+      throw e;
+    }
   }
 
   @Post('add-patient')
   @ApiOperation({ summary: 'Add existing patient to your family monitoring list' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        patientId: { type: 'number' },
-        relationship: { type: 'string' }
-      }
-    }
-  })
-  async addExistingPatient(@Request() req, @Body() body: {
-    patientId: number;
-    relationship: string;
-  }) {
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async addExistingPatient(@Request() req, @Body() body: AddExistingPatientDto) {
     const userId = req.user.userId;
 
     // Verify patient exists
@@ -153,31 +175,29 @@ export class FamilyController {
       throw new HttpException('Patient not found', HttpStatus.NOT_FOUND);
     }
 
-    // Check if relation already exists
-    const existing = await this.prisma.userPatientRelation.findFirst({
-      where: {
-        userId,
-        patientId: body.patientId
-      }
-    });
+    try {
+      // Create relation
+      // We rely on the DB unique constraint @@unique([userId, patientId])
+      // instead of checking first, to enable atomic concurrency safety
+      await this.prisma.userPatientRelation.create({
+        data: {
+          userId,
+          patientId: body.patientId,
+          relation: body.relationship
+        }
+      });
 
-    if (existing) {
-      throw new HttpException('Patient already in your family list', HttpStatus.CONFLICT);
+      return {
+        success: true,
+        message: 'Patient added to family monitoring list'
+      };
+
+    } catch (e) {
+      if (e.code === 'P2002') {
+        throw new HttpException('Patient already in your family list', HttpStatus.CONFLICT);
+      }
+      throw e;
     }
-
-    // Create relation
-    await this.prisma.userPatientRelation.create({
-      data: {
-        userId,
-        patientId: body.patientId,
-        relation: body.relationship
-      }
-    });
-
-    return {
-      success: true,
-      message: 'Patient added to family monitoring list'
-    };
   }
 
   @Delete('remove/:patientId')
@@ -185,6 +205,10 @@ export class FamilyController {
   async removePatient(@Request() req, @Param('patientId') patientId: string) {
     const userId = req.user.userId;
     const pId = parseInt(patientId);
+    
+    if (isNaN(pId)) {
+        throw new HttpException('Invalid patient ID', HttpStatus.BAD_REQUEST);
+    }
 
     const relation = await this.prisma.userPatientRelation.findFirst({
       where: {
@@ -228,19 +252,30 @@ export class FamilyController {
   async getMyGuardians(@Param('patientId') patientId: string) {
     const pId = parseInt(patientId);
 
+    if (isNaN(pId)) {
+      throw new HttpException('Invalid patient ID', HttpStatus.BAD_REQUEST);
+    }
+
     const relations = await this.prisma.userPatientRelation.findMany({
       where: { patientId: pId },
-      include: {
-        user: true, // The family member user
-      },
+      select: {
+        id: true,
+        relation: true,
+        user: {
+          select: {
+            name: true,
+            // Minimal info exposed - NO EMAIL, NO PASSWORD
+          }
+        }
+      }
     });
 
     return relations.map(r => ({
       id: r.id,
       name: r.user.name,
-      email: r.user.email,
       relationship: r.relation,
     }));
   }
 }
+
 

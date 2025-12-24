@@ -38,10 +38,16 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen>
   }
 
   Future<void> _loadPatients() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    // Non-destructive loading: only show full spinner if list is empty
+    if (_patients.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    } else {
+      // Just clear error if we are refreshing
+      setState(() => _error = null);
+    }
 
     try {
       final patients = await ApiService().getFamilyPatients();
@@ -50,12 +56,15 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen>
           _patients = patients;
           _isLoading = false;
         });
-        _fabController.forward();
+        if (_patients.isNotEmpty) {
+           _fabController.forward();
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          // Better error cleaning
+          _error = e.toString().replaceAll('Exception:', '').replaceAll('Error:', '').trim();
           _isLoading = false;
         });
       }

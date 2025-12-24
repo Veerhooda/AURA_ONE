@@ -10,11 +10,13 @@ exports.PatientModule = void 0;
 const common_1 = require("@nestjs/common");
 const patient_service_1 = require("./patient.service");
 const patient_controller_1 = require("./patient.controller");
+const events_module_1 = require("../events/events.module");
 let PatientModule = class PatientModule {
 };
 exports.PatientModule = PatientModule;
 exports.PatientModule = PatientModule = __decorate([
     (0, common_1.Module)({
+        imports: [events_module_1.EventsModule],
         providers: [patient_service_1.PatientService],
         controllers: [patient_controller_1.PatientController]
     })

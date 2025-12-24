@@ -14,12 +14,14 @@ const prisma_module_1 = require("./prisma/prisma.module");
 const users_module_1 = require("./users/users.module");
 const patient_module_1 = require("./patient/patient.module");
 const vitals_module_1 = require("./vitals/vitals.module");
-const navigation_module_1 = require("./navigation/navigation.module");
 const ai_module_1 = require("./ai/ai.module");
 const events_module_1 = require("./events/events.module");
-const medication_module_1 = require("./medication/medication.module");
 const chat_module_1 = require("./chat/chat.module");
 const appointments_module_1 = require("./appointments/appointments.module");
+const audit_module_1 = require("./audit/audit.module");
+const care_module_1 = require("./care/care.module");
+const throttler_1 = require("@nestjs/throttler");
+const core_1 = require("@nestjs/core");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -32,15 +34,24 @@ exports.AppModule = AppModule = __decorate([
             users_module_1.UsersModule,
             patient_module_1.PatientModule,
             vitals_module_1.VitalsModule,
-            navigation_module_1.NavigationModule,
             ai_module_1.AiModule,
             events_module_1.EventsModule,
-            medication_module_1.MedicationModule,
             chat_module_1.ChatModule,
-            appointments_module_1.AppointmentsModule
+            appointments_module_1.AppointmentsModule,
+            audit_module_1.AuditModule,
+            care_module_1.CareModule,
+            throttler_1.ThrottlerModule.forRoot([{
+                    ttl: 60000,
+                    limit: 10,
+                }]),
         ],
         controllers: [],
-        providers: [],
+        providers: [
+            {
+                provide: core_1.APP_GUARD,
+                useClass: throttler_1.ThrottlerGuard
+            }
+        ],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

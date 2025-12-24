@@ -16,7 +16,7 @@ void main() async {
   await NotificationService().initialize();
   await NotificationService().requestPermissions();
   
-  final socketUrl = 'http://172.20.10.3:3001';
+  final socketUrl = 'http://172.20.10.2:3001';
        
   SocketService().init(socketUrl);
 

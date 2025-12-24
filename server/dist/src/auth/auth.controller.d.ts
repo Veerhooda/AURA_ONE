@@ -2,8 +2,9 @@ import { AuthService } from './auth.service';
 export declare class AuthController {
     private authService;
     constructor(authService: AuthService);
-    login(signInDto: Record<string, any>): Promise<{
+    login(body: any): Promise<{
         access_token: string;
+        refresh_token: string;
         user: {
             id: any;
             name: any;
@@ -11,7 +12,15 @@ export declare class AuthController {
             role: any;
         };
         patient: any;
+        doctorId: any;
         isProfileComplete: boolean;
     }>;
-    register(createUserDto: any): Promise<any>;
+    register(body: any): Promise<any>;
+    refresh(body: {
+        refresh_token: string;
+    }): Promise<{
+        access_token: string;
+        refresh_token: string;
+    }>;
+    getProfile(req: any): Promise<any>;
 }

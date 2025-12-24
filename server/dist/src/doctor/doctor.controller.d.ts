@@ -7,14 +7,16 @@ export declare class DoctorController {
         id: number;
         email: string;
         name: string;
-        specialty: string;
         createdAt: Date;
+        userId: number | null;
+        specialty: string;
     }>;
     updateDoctor(id: number, updateDto: UpdateDoctorDto): Promise<{
         id: number;
         email: string;
         name: string;
-        specialty: string;
         createdAt: Date;
+        userId: number | null;
+        specialty: string;
     }>;
 }

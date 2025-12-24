@@ -1,24 +1,29 @@
 import { OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { PrismaService } from '../prisma/prisma.service';
-import { ChatService } from '../chat/chat.service';
+import { JwtService } from '@nestjs/jwt';
+import { VitalsValidationService } from '../vitals/vitals-validation.service';
+import { EmergencyAlertDto } from './dto/emergency-alert.dto';
+import { EmergencyService } from '../emergency/emergency.service';
 export declare class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     private prisma;
-    private chatService;
+    private jwtService;
+    private vitalsValidation;
+    private emergencyService;
     server: Server;
     private lastUpdate;
-    constructor(prisma: PrismaService, chatService: ChatService);
+    constructor(prisma: PrismaService, jwtService: JwtService, vitalsValidation: VitalsValidationService, emergencyService: EmergencyService);
     afterInit(server: Server): void;
     handleConnection(client: Socket, ...args: any[]): void;
     handleDisconnect(client: Socket): void;
     handleSubscribePatient(client: Socket, data: {
         patientId: number;
-    }): {
+    }): Promise<{
         event: string;
         data: {
             room: string;
         };
-    };
+    }>;
     handleUnsubscribePatient(client: Socket, data: {
         patientId: number;
     }): {
@@ -28,15 +33,7 @@ export declare class EventsGateway implements OnGatewayInit, OnGatewayConnection
         };
     };
     handleSimulateVitals(client: Socket, data: any): Promise<void>;
-    handlePatientEmergency(client: Socket, data: any): void;
-    handleSendMessage(client: Socket, data: {
-        senderId: number;
-        recipientId: number;
-        message: string;
-    }): {
-        success: boolean;
-        message: import("../chat/chat.service").Message;
-    };
+    handlePatientEmergency(client: Socket, data: EmergencyAlertDto): Promise<void>;
     handleSubscribeUser(client: Socket, data: {
         userId: number;
     }): {
@@ -45,4 +42,5 @@ export declare class EventsGateway implements OnGatewayInit, OnGatewayConnection
             room: string;
         };
     };
+    broadcastVitals(patientId: number, data: any): void;
 }

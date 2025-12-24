@@ -20,12 +20,18 @@ model User {
   email     String   @unique
   password  String
   name      String
-  blockchainId String? @unique // Simulated Blockchain Wallet Address
+  blockchainId String? @unique
   role      Role     @default(PATIENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   patient   Patient?
   relations UserPatientRelation[]
+  doctor    Doctor?
+  auditLogs AuditLog[]
+  guardianConsents PatientConsent[] @relation("GuardianConsents")  // C14: Consents I have
+  grantedConsents  PatientConsent[] @relation("GrantedConsents")   // C14: Consents I granted
+  acknowledgedEmergencies EmergencyAlert[] // Finding #14: Emergencies I acknowledged
+  conflictResolutions ConflictResolutionLog[] // Production Blocker #3: Conflicts I resolved
 }
 
 model Patient {
@@ -40,116 +46,71 @@ model Patient {
   riskScore Float?   @default(0)
   diagnosis String?
   
-  // New Registration Fields
-  weight    String?   // e.g. "75 kg"
-  status    String?   // e.g. "Admitted", "Critical"
-  symptoms  String?   // e.g. "Chest pain, dizziness"
+  weight    String?
+  status    String?
+  symptoms  String?
   
-  // Pain Management
-  painLevel      Int?      // 0-10 Scale
+  painLevel      Int?
   painReportedAt DateTime?
-
-  // Latest Vitals Snapshot (Persisted from Stream)
-  latestVitals   Json?
-
-  vitals    Vitals[]
-  snapshots DigitalTwinSnapshot[]
+  
+  latestVitals Json?
+  
+  medications     Medication[]
+  appointments    Appointment[]
+  history         PatientHistory[]
+  alerts          Alert[]
+  relations       UserPatientRelation[]
+  conversations   Conversation[]
+  careTasks       CareTask[]
+  consents        PatientConsent[]
+  emergencyAlerts EmergencyAlert[]  // Finding #14
+  
+  version         Int       @default(1)  // Finding #7: Optimistic locking
+  metadata Json?
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  prescriptions Prescription[]
-  alerts        Alert[]
-  relations     UserPatientRelation[]
-  appointments  Appointment[]
-}
-
-model Vitals {
-  id        Int      @id @default(autoincrement())
-  patientId Int
-  patient   Patient  @relation(fields: [patientId], references: [id])
-  type      String
-  value     Float
-  unit      String
-  timestamp DateTime @default(now())
-}
-
-model DigitalTwinSnapshot {
-  id        Int      @id @default(autoincrement())
-  patientId Int
-  patient   Patient  @relation(fields: [patientId], references: [id])
-  data      Json
-  createdAt DateTime @default(now())
-}
-
-model MapNode {
-  id          Int       @id @default(autoincrement())
-  label       String?   // e.g. "Room 204", "Elevator A"
-  x           Float
-  y           Float
-  floor       Int       @default(1)
-  isAccessible Boolean  @default(true) // For wheelchair routing
-  type        String    @default("corridor") // room, corridor, elevator, stairs
-  edgesFrom   MapEdge[] @relation("FromNode")
-  edgesTo     MapEdge[] @relation("ToNode")
-}
-
-model MapEdge {
-  id        Int      @id @default(autoincrement())
-  fromId    Int
-  toId      Int
-  weight    Int
-  from      MapNode  @relation("FromNode", fields: [fromId], references: [id])
-  to        MapNode  @relation("ToNode", fields: [toId], references: [id])
-  isAccessible Boolean @default(true)
-
-  @@unique([fromId, toId])
-}
-
-// EXPANSION PHASE MODELS
-
-model Medication {
-  id            Int             @id @default(autoincrement())
-  name          String
-  description   String?
-  sideEffects   String?
-  interactions  String? // JSON string or simple text for Interaction Checking
-  prescriptions Prescription[]
-  createdAt     DateTime        @default(now())
-}
-
-model Prescription {
-  id           Int        @id @default(autoincrement())
-  patientId    Int
-  medicationId Int
-  dosage       String
-  frequency    String
-  startDate    DateTime
-  endDate      DateTime?
-  active       Boolean    @default(true)
-  
-  patient      Patient    @relation(fields: [patientId], references: [id])
-  medication   Medication @relation(fields: [medicationId], references: [id])
-  createdAt    DateTime   @default(now())
 }
 
 model UserPatientRelation {
   id        Int      @id @default(autoincrement())
-  userId    Int      // User with role FAMILY
+  userId    Int
   patientId Int
-  relation  String   // e.g. "Son", "Wife"
+  relation  String
+  createdAt DateTime @default(now())
   
-  user      User     @relation(fields: [userId], references: [id])
-  patient   Patient  @relation(fields: [patientId], references: [id])
-
+  user    User    @relation(fields: [userId], references: [id])
+  patient Patient @relation(fields: [patientId], references: [id])
+  
   @@unique([userId, patientId])
+}
+
+model Medication {
+  id        Int      @id @default(autoincrement())
+  patientId Int
+  name      String
+  dosage    String
+  frequency String?
+  createdAt DateTime @default(now())
+  
+  patient Patient @relation(fields: [patientId], references: [id])
+}
+
+model PatientHistory {
+  id        Int      @id @default(autoincrement())
+  patientId Int
+  entry     String
+  createdAt DateTime @default(now())
+  
+  patient Patient @relation(fields: [patientId], references: [id])
 }
 
 model Alert {
   id        Int      @id @default(autoincrement())
   patientId Int
-  type      String   // "CRITICAL_VITALS", "FALL_DETECTED", "MEDICATION_SKIPPED"
+  type      String
   message   String
-  severity  String   // "HIGH", "MEDIUM", "LOW"
+  severity  String
   resolved  Boolean  @default(false)
   timestamp DateTime @default(now())
 
@@ -157,12 +118,16 @@ model Alert {
 }
 
 model Doctor {
-  id           Int           @id @default(autoincrement())
-  name         String
-  specialty    String
-  email        String        @unique
-  appointments Appointment[]
-  createdAt    DateTime      @default(now())
+  id            Int           @id @default(autoincrement())
+  userId        Int?          @unique
+  name          String
+  specialty     String
+  email         String        @unique
+  appointments  Appointment[]
+  conversations Conversation[]
+  createdAt     DateTime      @default(now())
+  
+  user          User?         @relation(fields: [userId], references: [id])
 }
 
 model Appointment {
@@ -170,8 +135,8 @@ model Appointment {
   patientId Int
   doctorId  Int
   dateTime  DateTime
-  status    String   @default("scheduled") // scheduled, completed, cancelled
-  type      String   @default("consultation") // consultation, follow-up, emergency
+  status    String   @default("scheduled")
+  type      String   @default("consultation")
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -180,4 +145,189 @@ model Appointment {
   doctor  Doctor  @relation(fields: [doctorId], references: [id])
 
   @@map("appointments")
+}
+
+enum TaskPriority {
+  CRITICAL
+  HIGH
+  ROUTINE
+  LOW
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+// C14: Patient Consent Management for HIPAA Compliance
+model PatientConsent {
+  id            Int       @id @default(autoincrement())
+  patientId     Int
+  guardianId    Int       // User ID of family member
+  consentType   String    // VIEW_VITALS, VIEW_MEDS, VIEW_CHAT, MODIFY_CARE_PLAN
+  grantedAt     DateTime  @default(now())
+  revokedAt     DateTime?
+  grantedBy     Int       // User ID who granted (usually patient themselves)
+  
+  patient       Patient   @relation(fields: [patientId], references: [id])
+  guardian      User      @relation("GuardianConsents", fields: [guardianId], references: [id])
+  grantor       User      @relation("GrantedConsents", fields: [grantedBy], references: [id])
+  
+  @@unique([patientId, guardianId, consentType])
+  @@index([guardianId, consentType])
+  @@map("patient_consents")
+}
+
+model CareTask {
+  id          Int          @id @default(autoincrement())
+  patientId   Int
+  title       String
+  description String?
+  priority    TaskPriority @default(ROUTINE)
+  status      TaskStatus   @default(PENDING)
+  dueTime     DateTime?
+  completedAt DateTime?
+  completedBy String?
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  patient     Patient      @relation(fields: [patientId], references: [id])
+  
+  @@index([patientId, status])
+  @@index([dueTime])
+  @@map("care_tasks")
+}
+
+model Conversation {
+  id             Int       @id @default(autoincrement())
+  patientId      Int
+  doctorId       Int
+  lastMessageAt  DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  
+  patient        Patient   @relation(fields: [patientId], references: [id])
+  doctor         Doctor    @relation(fields: [doctorId], references: [id])
+  messages       Message[]
+  
+  @@unique([patientId, doctorId])
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  senderId       Int
+  senderType     String       // C4: PATIENT, DOCTOR, NURSE, FAMILY
+  content        String
+  type           String       @default("TEXT")
+  linkedVitalsId Int?
+  sequence       Int          // Finding #6: Server-assigned sequence for ordering
+  idempotencyKey String?      @unique // Finding #5: Prevent duplicate sends
+  createdAt      DateTime     @default(now())
+  
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+// C10: Audit Trail for HIPAA Compliance
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  userRole    String
+  action      String
+  entityType  String
+  entityId    Int?
+  changes     Json
+  ipAddress   String?
+  timestamp   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+  
+  @@index([userId, timestamp])
+  @@index([entityType, entityId])
+  @@index([action, timestamp])
+  @@map("audit_logs")
+}
+
+// Production Blocker #3: Conflict Resolution Audit Log (Legal Compliance)
+model ConflictResolutionLog {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  userRole        String
+  entityType      String   // PATIENT, MEDICATION, etc.
+  entityId        Int
+  
+  // Conflict details
+  expectedVersion Int
+  currentVersion  Int
+  conflictFields  Json     // Array of conflicting field names
+  
+  // Resolution details
+  yourData        Json     // Data user tried to save
+  serverData      Json     // Current server data
+  resolvedData    Json     // Final merged data
+  
+  // Audit
+  detectedAt      DateTime @default(now())
+  resolvedAt      DateTime
+  ipAddress       String?
+  
+  user            User     @relation(fields: [userId], references: [id])
+  
+  @@index([userId, detectedAt])
+  @@index([entityType, entityId])
+  @@map("conflict_resolution_logs")
+}
+
+// Finding #14: Emergency Alert Persistence for 100% Delivery Guarantee
+model EmergencyAlert {
+  id              Int       @id @default(autoincrement())
+  patientId       Int
+  severity        String    // CRITICAL, HIGH, MEDIUM, LOW
+  vitalType       String    // HR, SPO2, BP, TEMP, FALL, MEDICATION
+  value           String?
+  notes           String?
+  
+  // Delivery tracking
+  triggeredAt     DateTime  @default(now())
+  deliveredVia    String?   // WEBSOCKET, PUSH, SMS
+  deliveredAt     DateTime?
+  acknowledgedBy  Int?
+  acknowledgedAt  DateTime?
+  
+  // Retry tracking
+  retryCount      Int       @default(0)
+  lastRetryAt     DateTime?
+  
+  // Audit
+  resolved        Boolean   @default(false)
+  resolvedAt      DateTime?
+  
+  patient         Patient   @relation(fields: [patientId], references: [id])
+  acknowledger    User?     @relation(fields: [acknowledgedBy], references: [id])
+  
+  @@index([patientId, triggeredAt])
+  @@index([deliveredAt, acknowledgedAt])
+  @@index([resolved])
+  @@map("emergency_alerts")
+}
+
+// C8: Vitals Failure Logging
+model VitalsFailureLog {
+  id          Int       @id @default(autoincrement())
+  patientId   Int
+  vitalsData  Json
+  error       String
+  retryCount  Int       @default(0)
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  
+  @@index([patientId, resolvedAt])
+  @@map("vitals_failure_logs")
 }

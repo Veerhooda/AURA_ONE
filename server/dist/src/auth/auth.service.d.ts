@@ -9,6 +9,7 @@ export declare class AuthService {
     validateUser(email: string, pass: string): Promise<any>;
     login(user: any): Promise<{
         access_token: string;
+        refresh_token: string;
         user: {
             id: any;
             name: any;
@@ -16,7 +17,13 @@ export declare class AuthService {
             role: any;
         };
         patient: any;
+        doctorId: any;
         isProfileComplete: boolean;
     }>;
+    refreshAccessToken(refreshToken: string): Promise<{
+        access_token: string;
+        refresh_token: string;
+    }>;
     register(data: any): Promise<any>;
+    getProfile(userId: number): Promise<any>;
 }

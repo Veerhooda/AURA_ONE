@@ -1,4 +1,18 @@
 import { PrismaService } from '../prisma/prisma.service';
+export declare class CreateFamilyPatientDto {
+    name: string;
+    email: string;
+    password: string;
+    mrn: string;
+    dob: string;
+    gender: string;
+    weight?: string;
+    relationship: string;
+}
+export declare class AddExistingPatientDto {
+    patientId: number;
+    relationship: string;
+}
 export declare class FamilyController {
     private prisma;
     constructor(prisma: PrismaService);
@@ -8,37 +22,18 @@ export declare class FamilyController {
         name: string;
         email: string;
         ward: string;
-        lastVitals: {
-            id: number;
-            patientId: number;
-            timestamp: Date;
-            type: string;
-            value: number;
-            unit: string;
-        };
+        lastVitals: string | number | true | import("@prisma/client/runtime/library").JsonObject | import("@prisma/client/runtime/library").JsonArray;
         activeAlerts: number;
         status: string;
         lastSeen: Date;
     }[]>;
-    createFamilyPatient(req: any, body: {
-        name: string;
-        email: string;
-        password: string;
-        mrn: string;
-        dob: string;
-        gender: string;
-        weight?: string;
-        relationship: string;
-    }): Promise<{
+    createFamilyPatient(req: any, body: CreateFamilyPatientDto): Promise<{
         success: boolean;
         patientId: number;
         userId: number;
         message: string;
     }>;
-    addExistingPatient(req: any, body: {
-        patientId: number;
-        relationship: string;
-    }): Promise<{
+    addExistingPatient(req: any, body: AddExistingPatientDto): Promise<{
         success: boolean;
         message: string;
     }>;
@@ -50,7 +45,6 @@ export declare class FamilyController {
     getMyGuardians(patientId: string): Promise<{
         id: number;
         name: string;
-        email: string;
         relationship: string;
     }[]>;
 }

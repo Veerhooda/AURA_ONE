@@ -16,6 +16,9 @@ import '../../features/patient/presentation/screens/family_dashboard_screen.dart
 import '../../features/ai/presentation/screens/vision_stub_screen.dart';
 import '../../features/ai/presentation/screens/chat_screen.dart';
 import '../../features/patient/presentation/screens/pain_report_screen.dart';
+import '../../features/patient/presentation/screens/nurse_dashboard_screen.dart';
+import '../../features/chat/presentation/screens/doctor_inbox_screen.dart';
+import '../../features/chat/presentation/screens/chat_thread_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -104,6 +107,27 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/ai/pain',
       builder: (context, state) => const VisionStubScreen(mode: 'pain'),
+    ),
+    GoRoute(
+      path: '/nurse/home',
+      builder: (context, state) => const NurseDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/doctor/inbox',
+      builder: (context, state) => const DoctorInboxScreen(),
+    ),
+    GoRoute(
+      path: '/chat/thread/:conversationId',
+      builder: (context, state) {
+        final convId = int.tryParse(state.pathParameters['conversationId'] ?? '0') ?? 0;
+        final patientId = int.tryParse(state.uri.queryParameters['patientId'] ?? '0') ?? 0;
+        final patientName = state.uri.queryParameters['patientName'] ?? 'Patient';
+        return ChatThreadScreen(
+          conversationId: convId, 
+          patientName: patientName, 
+          patientId: patientId
+        );
+      },
     ),
   ],
 );

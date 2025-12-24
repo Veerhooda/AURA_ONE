@@ -13,9 +13,11 @@ exports.PatientService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const axios_1 = require("axios");
+const events_gateway_1 = require("../events/events.gateway");
 let PatientService = class PatientService {
-    constructor(prisma) {
+    constructor(prisma, eventsGateway) {
         this.prisma = prisma;
+        this.eventsGateway = eventsGateway;
     }
     async generateRecoveryGraph(id) {
         const patient = await this.prisma.patient.findUnique({
@@ -56,17 +58,11 @@ let PatientService = class PatientService {
         }
     }
     async getDigitalTwin(id) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a;
         const patient = await this.prisma.patient.findUnique({
             where: { id },
             include: {
-                vitals: {
-                    orderBy: { timestamp: 'desc' },
-                    take: 10,
-                },
-                user: {
-                    select: { name: true, email: true },
-                },
+                user: true,
             },
         });
         if (!patient) {
@@ -81,7 +77,7 @@ let PatientService = class PatientService {
         const lv = patient.latestVitals;
         return {
             metadata: {
-                name: patient.user.name,
+                name: ((_a = patient.user) === null || _a === void 0 ? void 0 : _a.name) || 'Unknown',
                 mrn: patient.mrn,
                 bed: patient.bed,
                 ward: patient.ward,
@@ -91,9 +87,9 @@ let PatientService = class PatientService {
             status: patient.status || 'Discharged',
             diagnosis: patient.diagnosis || '',
             current_state: {
-                heart_rate: (_a = lv === null || lv === void 0 ? void 0 : lv.hr) !== null && _a !== void 0 ? _a : (_b = this.getLatestVital(patient.vitals, 'HR')) === null || _b === void 0 ? void 0 : _b.value,
-                blood_pressure: (_c = lv === null || lv === void 0 ? void 0 : lv.bp) !== null && _c !== void 0 ? _c : (_d = this.getLatestVital(patient.vitals, 'BP')) === null || _d === void 0 ? void 0 : _d.value,
-                spo2: (_e = lv === null || lv === void 0 ? void 0 : lv.spo2) !== null && _e !== void 0 ? _e : (_f = this.getLatestVital(patient.vitals, 'SPO2')) === null || _f === void 0 ? void 0 : _f.value,
+                heart_rate: (lv === null || lv === void 0 ? void 0 : lv.hr) || 'N/A',
+                blood_pressure: (lv === null || lv === void 0 ? void 0 : lv.bp) || 'N/A',
+                spo2: (lv === null || lv === void 0 ? void 0 : lv.spo2) || 'N/A',
                 risk_score: riskScore,
                 pain_level: patient.painLevel,
                 pain_reported_at: patient.painReportedAt,
@@ -160,22 +156,7 @@ let PatientService = class PatientService {
         });
     }
     async addMedication(patientId, data) {
-        const medication = await this.prisma.medication.create({
-            data: {
-                name: data.name,
-                description: data.description || 'Prescribed by doctor'
-            }
-        });
-        return this.prisma.prescription.create({
-            data: {
-                patientId,
-                medicationId: medication.id,
-                dosage: data.dosage || '1 pill daily',
-                frequency: data.frequency || 'Daily',
-                startDate: new Date(),
-                active: true
-            }
-        });
+        throw new Error('Medication creation not yet implemented');
     }
     async addHistory(id, note) {
         const patient = await this.prisma.patient.findUnique({ where: { id } });
@@ -187,24 +168,7 @@ let PatientService = class PatientService {
         });
     }
     async getPatientMedications(patientId) {
-        const prescriptions = await this.prisma.prescription.findMany({
-            where: {
-                patientId,
-                active: true
-            },
-            include: {
-                medication: true
-            },
-            orderBy: { createdAt: 'desc' }
-        });
-        return prescriptions.map(p => ({
-            id: p.id,
-            name: p.medication.name,
-            dosage: p.dosage,
-            frequency: p.frequency,
-            startDate: p.startDate,
-            active: p.active
-        }));
+        return [];
     }
     async getPatientHistory(patientId) {
         const patient = await this.prisma.patient.findUnique({
@@ -273,20 +237,33 @@ let PatientService = class PatientService {
         };
     }
     async addManualVital(patientId, type, value, unit) {
-        return this.prisma.vitals.create({
-            data: {
-                patientId,
-                type,
-                value,
-                unit,
-                timestamp: new Date(),
-            },
+        const patient = await this.prisma.patient.findUnique({ where: { id: patientId } });
+        const currentVitals = patient.latestVitals || {};
+        const newVitals = Object.assign(Object.assign({}, currentVitals), { [type.toLowerCase()]: value });
+        if (type === 'heart_rate')
+            newVitals['hr'] = value;
+        if (type === 'spo2')
+            newVitals['spo2'] = value;
+        if (type === 'blood_pressure_systolic')
+            newVitals['bp_sys'] = value;
+        if (type === 'blood_pressure_diastolic')
+            newVitals['bp_dia'] = value;
+        if (newVitals['bp_sys'] && newVitals['bp_dia']) {
+            newVitals['bp'] = `${newVitals['bp_sys']}/${newVitals['bp_dia']}`;
+        }
+        newVitals.timestamp = new Date().toISOString();
+        await this.prisma.patient.update({
+            where: { id: patientId },
+            data: { latestVitals: newVitals }
         });
+        this.eventsGateway.broadcastVitals(patientId, newVitals);
+        return { success: true };
     }
 };
 exports.PatientService = PatientService;
 exports.PatientService = PatientService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        events_gateway_1.EventsGateway])
 ], PatientService);
 //# sourceMappingURL=patient.service.js.map

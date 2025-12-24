@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'dart:math';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../services/api_service.dart';
@@ -48,10 +49,11 @@ class _CreatePatientDialogState extends State<CreatePatientDialog> with SingleTi
     super.dispose();
   }
 
-  // Generate MRN automatically
+  // Generate MRN automatically with collision resistance
   String _generateMRN() {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    return 'MRN-${timestamp.toString().substring(5)}';
+    final random = Random().nextInt(9999).toString().padLeft(4, '0');
+    return 'MRN-${timestamp.toString().substring(8)}-$random';
   }
 
   Future<void> _createNewPatient() async {

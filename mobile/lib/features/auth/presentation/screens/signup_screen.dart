@@ -18,7 +18,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _passwordController = TextEditingController();
   final _weightController = TextEditingController();
   final _symptomsController = TextEditingController();
+  final _specialtyController = TextEditingController();
+  final _wardController = TextEditingController();
   String _selectedStatus = 'Admitted';
+  String _selectedRole = 'PATIENT';
+
+  String _formatRole(String role) {
+    if (role == 'PATIENT') return 'Patient';
+    if (role == 'DOCTOR') return 'Doctor';
+    if (role == 'NURSE') return 'Nurse';
+    return role;
+  }
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
@@ -31,9 +41,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           _nameController.text.trim(),
           _emailController.text.trim(), 
           _passwordController.text.trim(),
-          weight: _weightController.text.trim(),
-          status: _selectedStatus,
-          symptoms: _symptomsController.text.trim(),
+          role: _selectedRole,
+          weight: _selectedRole == 'PATIENT' ? _weightController.text.trim() : null,
+          status: _selectedRole == 'PATIENT' ? _selectedStatus : null,
+          symptoms: _selectedRole == 'PATIENT' ? _symptomsController.text.trim() : null,
+          specialty: _selectedRole == 'DOCTOR' ? _specialtyController.text.trim() : null,
+          ward: _selectedRole == 'NURSE' ? _wardController.text.trim() : null,
         );
         
         if (mounted) {
@@ -120,48 +133,95 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               
               const SizedBox(height: 16),
               
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _weightController,
-                      decoration: const InputDecoration(
-                        labelText: 'Weight (kg)',
-                        prefixIcon: Icon(Icons.monitor_weight_outlined),
-                      ),
-                      style: AppTypography.bodyLarge,
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedStatus,
-                      isExpanded: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Status',
-                        prefixIcon: Icon(Icons.local_hospital_outlined),
-                      ),
-                      dropdownColor: AppColors.surface,
-                      items: ['Admitted', 'Critical', 'Discharged', 'Observation']
-                          .map((s) => DropdownMenuItem(value: s, child: Text(s, style: AppTypography.bodyLarge)))
-                          .toList(),
-                      onChanged: (val) => setState(() => _selectedStatus = val!),
-                    ),
-                  ),
-                ],
-              ),
               const SizedBox(height: 16),
               
-              TextFormField(
-                controller: _symptomsController,
+              // Role Selection
+              DropdownButtonFormField<String>(
+                value: _selectedRole,
                 decoration: const InputDecoration(
-                  labelText: 'Current Symptoms',
-                  prefixIcon: Icon(Icons.sick_outlined),
+                  labelText: 'I am a...',
+                  prefixIcon: Icon(Icons.badge_outlined),
                 ),
-                style: AppTypography.bodyLarge,
-                maxLines: 2,
+                dropdownColor: AppColors.surface,
+                items: ['PATIENT', 'DOCTOR', 'NURSE']
+                    .map((role) => DropdownMenuItem(value: role, child: Text(_formatRole(role), style: AppTypography.bodyLarge)))
+                    .toList(),
+                onChanged: (val) => setState(() => _selectedRole = val!),
               ),
+              const SizedBox(height: 16),
+
+              // Patient Specific Fields
+              if (_selectedRole == 'PATIENT') ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _weightController,
+                        decoration: const InputDecoration(
+                          labelText: 'Weight (kg)',
+                          prefixIcon: Icon(Icons.monitor_weight_outlined),
+                        ),
+                        style: AppTypography.bodyLarge,
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedStatus,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Status',
+                          prefixIcon: Icon(Icons.local_hospital_outlined),
+                        ),
+                        dropdownColor: AppColors.surface,
+                        items: ['Admitted', 'Critical', 'Discharged', 'Observation']
+                            .map((s) => DropdownMenuItem(value: s, child: Text(s, style: AppTypography.bodyLarge)))
+                            .toList(),
+                        onChanged: (val) => setState(() => _selectedStatus = val!),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _symptomsController,
+                  decoration: const InputDecoration(
+                    labelText: 'Current Symptoms',
+                    prefixIcon: Icon(Icons.sick_outlined),
+                  ),
+                  style: AppTypography.bodyLarge,
+                  maxLines: 2,
+                ),
+              ],
+
+              // Doctor Specific Fields
+              if (_selectedRole == 'DOCTOR') ...[
+                TextFormField(
+                  controller: _specialtyController,
+                  decoration: const InputDecoration(
+                    labelText: 'Specialty',
+                    prefixIcon: Icon(Icons.medical_services_outlined),
+                    hintText: 'e.g. Cardiology, Neurology',
+                  ),
+                  style: AppTypography.bodyLarge,
+                  validator: (val) => val!.isEmpty ? 'Please enter specialty' : null,
+                ),
+              ],
+
+              // Nurse Specific Fields
+              if (_selectedRole == 'NURSE') ...[
+                TextFormField(
+                  controller: _wardController,
+                  decoration: const InputDecoration(
+                    labelText: 'Assigned Ward',
+                    prefixIcon: Icon(Icons.meeting_room_outlined),
+                    hintText: 'e.g. ICU, General Ward A',
+                  ),
+                  style: AppTypography.bodyLarge,
+                  validator: (val) => val!.isEmpty ? 'Please enter ward' : null,
+                ),
+              ],
 
               const SizedBox(height: 32),
               ElevatedButton(

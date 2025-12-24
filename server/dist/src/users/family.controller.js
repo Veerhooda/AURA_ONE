@@ -12,12 +12,66 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FamilyController = void 0;
+exports.FamilyController = exports.AddExistingPatientDto = exports.CreateFamilyPatientDto = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const passport_1 = require("@nestjs/passport");
 const swagger_1 = require("@nestjs/swagger");
 const bcrypt = require("bcrypt");
+const class_validator_1 = require("class-validator");
+class CreateFamilyPatientDto {
+}
+exports.CreateFamilyPatientDto = CreateFamilyPatientDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(2),
+    __metadata("design:type", String)
+], CreateFamilyPatientDto.prototype, "name", void 0);
+__decorate([
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], CreateFamilyPatientDto.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(8, { message: 'Password must be at least 8 characters long' }),
+    __metadata("design:type", String)
+], CreateFamilyPatientDto.prototype, "password", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(5),
+    __metadata("design:type", String)
+], CreateFamilyPatientDto.prototype, "mrn", void 0);
+__decorate([
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], CreateFamilyPatientDto.prototype, "dob", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsEnum)(['Male', 'Female', 'Other']),
+    __metadata("design:type", String)
+], CreateFamilyPatientDto.prototype, "gender", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateFamilyPatientDto.prototype, "weight", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(2),
+    __metadata("design:type", String)
+], CreateFamilyPatientDto.prototype, "relationship", void 0);
+class AddExistingPatientDto {
+}
+exports.AddExistingPatientDto = AddExistingPatientDto;
+__decorate([
+    (0, class_validator_1.IsInt)(),
+    __metadata("design:type", Number)
+], AddExistingPatientDto.prototype, "patientId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(2),
+    __metadata("design:type", String)
+], AddExistingPatientDto.prototype, "relationship", void 0);
 let FamilyController = class FamilyController {
     constructor(prisma) {
         this.prisma = prisma;
@@ -30,28 +84,24 @@ let FamilyController = class FamilyController {
                 patient: {
                     include: {
                         user: true,
-                        vitals: { orderBy: { timestamp: 'desc' }, take: 1 },
-                        alerts: { where: { resolved: false } }
                     }
                 }
             }
         });
-        return relations.map(r => {
-            var _a;
-            return ({
-                relation: r.relation,
-                patientId: r.patientId,
-                name: r.patient.user.name,
-                email: r.patient.user.email,
-                ward: r.patient.ward,
-                lastVitals: r.patient.vitals[0] || null,
-                activeAlerts: r.patient.alerts.length,
-                status: this._determineStatus(r.patient.vitals[0]),
-                lastSeen: ((_a = r.patient.vitals[0]) === null || _a === void 0 ? void 0 : _a.timestamp) || r.patient.updatedAt
-            });
-        });
+        return relations.map(r => ({
+            relation: r.relation,
+            patientId: r.patientId,
+            name: r.patient.user.name,
+            email: r.patient.user.email,
+            ward: r.patient.ward,
+            lastVitals: r.patient.latestVitals || null,
+            activeAlerts: 0,
+            status: this._determineStatus(r.patient.latestVitals),
+            lastSeen: r.patient.updatedAt
+        }));
     }
     async createFamilyPatient(req, body) {
+        var _a;
         const familyUserId = req.user.userId;
         const existing = await this.prisma.user.findUnique({
             where: { email: body.email }
@@ -60,39 +110,53 @@ let FamilyController = class FamilyController {
             throw new common_1.HttpException('Email already registered', common_1.HttpStatus.CONFLICT);
         }
         const hashedPassword = await bcrypt.hash(body.password, 10);
-        const result = await this.prisma.$transaction(async (prisma) => {
-            const patient = await prisma.patient.create({
-                data: {
-                    mrn: body.mrn,
-                    dob: new Date(body.dob),
-                    gender: body.gender,
-                    weight: body.weight,
-                    user: {
-                        create: {
-                            name: body.name,
-                            email: body.email,
-                            password: hashedPassword,
-                            role: 'PATIENT'
+        try {
+            const result = await this.prisma.$transaction(async (prisma) => {
+                const patient = await prisma.patient.create({
+                    data: {
+                        mrn: body.mrn,
+                        dob: new Date(body.dob),
+                        gender: body.gender,
+                        weight: body.weight,
+                        user: {
+                            create: {
+                                name: body.name,
+                                email: body.email,
+                                password: hashedPassword,
+                                role: 'PATIENT'
+                            }
                         }
+                    },
+                    include: { user: true }
+                });
+                await prisma.userPatientRelation.create({
+                    data: {
+                        userId: familyUserId,
+                        patientId: patient.id,
+                        relation: body.relationship
                     }
-                },
-                include: { user: true }
+                });
+                return patient;
             });
-            await prisma.userPatientRelation.create({
-                data: {
-                    userId: familyUserId,
-                    patientId: patient.id,
-                    relation: body.relationship
+            return {
+                success: true,
+                patientId: result.id,
+                userId: result.user.id,
+                message: 'Patient account created and linked successfully'
+            };
+        }
+        catch (e) {
+            if (e.code === 'P2002') {
+                const target = (_a = e.meta) === null || _a === void 0 ? void 0 : _a.target;
+                if (Array.isArray(target) && target.includes('mrn')) {
+                    throw new common_1.HttpException('MRN collision detected. Please try again.', common_1.HttpStatus.CONFLICT);
                 }
-            });
-            return patient;
-        });
-        return {
-            success: true,
-            patientId: result.id,
-            userId: result.user.id,
-            message: 'Patient account created and linked successfully'
-        };
+                if (Array.isArray(target) && target.includes('email')) {
+                    throw new common_1.HttpException('Email already registered', common_1.HttpStatus.CONFLICT);
+                }
+            }
+            throw e;
+        }
     }
     async addExistingPatient(req, body) {
         const userId = req.user.userId;
@@ -102,30 +166,32 @@ let FamilyController = class FamilyController {
         if (!patient) {
             throw new common_1.HttpException('Patient not found', common_1.HttpStatus.NOT_FOUND);
         }
-        const existing = await this.prisma.userPatientRelation.findFirst({
-            where: {
-                userId,
-                patientId: body.patientId
-            }
-        });
-        if (existing) {
-            throw new common_1.HttpException('Patient already in your family list', common_1.HttpStatus.CONFLICT);
+        try {
+            await this.prisma.userPatientRelation.create({
+                data: {
+                    userId,
+                    patientId: body.patientId,
+                    relation: body.relationship
+                }
+            });
+            return {
+                success: true,
+                message: 'Patient added to family monitoring list'
+            };
         }
-        await this.prisma.userPatientRelation.create({
-            data: {
-                userId,
-                patientId: body.patientId,
-                relation: body.relationship
+        catch (e) {
+            if (e.code === 'P2002') {
+                throw new common_1.HttpException('Patient already in your family list', common_1.HttpStatus.CONFLICT);
             }
-        });
-        return {
-            success: true,
-            message: 'Patient added to family monitoring list'
-        };
+            throw e;
+        }
     }
     async removePatient(req, patientId) {
         const userId = req.user.userId;
         const pId = parseInt(patientId);
+        if (isNaN(pId)) {
+            throw new common_1.HttpException('Invalid patient ID', common_1.HttpStatus.BAD_REQUEST);
+        }
         const relation = await this.prisma.userPatientRelation.findFirst({
             where: {
                 userId,
@@ -158,16 +224,24 @@ let FamilyController = class FamilyController {
     }
     async getMyGuardians(patientId) {
         const pId = parseInt(patientId);
+        if (isNaN(pId)) {
+            throw new common_1.HttpException('Invalid patient ID', common_1.HttpStatus.BAD_REQUEST);
+        }
         const relations = await this.prisma.userPatientRelation.findMany({
             where: { patientId: pId },
-            include: {
-                user: true,
-            },
+            select: {
+                id: true,
+                relation: true,
+                user: {
+                    select: {
+                        name: true,
+                    }
+                }
+            }
         });
         return relations.map(r => ({
             id: r.id,
             name: r.user.name,
-            email: r.user.email,
             relationship: r.relation,
         }));
     }
@@ -184,44 +258,21 @@ __decorate([
 __decorate([
     (0, common_1.Post)('create-patient'),
     (0, swagger_1.ApiOperation)({ summary: 'Create a new patient account and link to family' }),
-    (0, swagger_1.ApiBody)({
-        schema: {
-            type: 'object',
-            required: ['name', 'email', 'password', 'mrn', 'dob', 'gender', 'relationship'],
-            properties: {
-                name: { type: 'string' },
-                email: { type: 'string' },
-                password: { type: 'string' },
-                mrn: { type: 'string', description: 'Medical Record Number' },
-                dob: { type: 'string', format: 'date' },
-                gender: { type: 'string', enum: ['Male', 'Female', 'Other'] },
-                weight: { type: 'string' },
-                relationship: { type: 'string' }
-            }
-        }
-    }),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({ whitelist: true })),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, CreateFamilyPatientDto]),
     __metadata("design:returntype", Promise)
 ], FamilyController.prototype, "createFamilyPatient", null);
 __decorate([
     (0, common_1.Post)('add-patient'),
     (0, swagger_1.ApiOperation)({ summary: 'Add existing patient to your family monitoring list' }),
-    (0, swagger_1.ApiBody)({
-        schema: {
-            type: 'object',
-            properties: {
-                patientId: { type: 'number' },
-                relationship: { type: 'string' }
-            }
-        }
-    }),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({ whitelist: true })),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, AddExistingPatientDto]),
     __metadata("design:returntype", Promise)
 ], FamilyController.prototype, "addExistingPatient", null);
 __decorate([

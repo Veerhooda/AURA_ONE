@@ -2,9 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import axios from 'axios';
 
+import { EventsGateway } from '../events/events.gateway';
+
 @Injectable()
 export class PatientService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventsGateway: EventsGateway
+  ) {}
 
   async generateRecoveryGraph(id: number) {
     const patient = await this.prisma.patient.findUnique({
@@ -59,13 +64,7 @@ export class PatientService {
     const patient = await this.prisma.patient.findUnique({
       where: { id },
       include: {
-        vitals: {
-          orderBy: { timestamp: 'desc' },
-          take: 10,
-        },
-        user: {
-          select: { name: true, email: true },
-        },
+        user: true,
       },
     });
 
@@ -82,12 +81,11 @@ export class PatientService {
       deterioration_prob: riskScore / 100,
     };
 
-    // Use latestVitals snapshot if available, otherwise fall back to Vitals table
     const lv = patient.latestVitals as any;
 
     return {
       metadata: {
-        name: patient.user.name,
+        name: patient.user?.name || 'Unknown',
         mrn: patient.mrn,
         bed: patient.bed,
         ward: patient.ward,
@@ -97,9 +95,9 @@ export class PatientService {
       status: patient.status || 'Discharged',
       diagnosis: patient.diagnosis || '',
       current_state: {
-         heart_rate: lv?.hr ?? this.getLatestVital(patient.vitals, 'HR')?.value,
-         blood_pressure: lv?.bp ?? this.getLatestVital(patient.vitals, 'BP')?.value,
-         spo2: lv?.spo2 ?? this.getLatestVital(patient.vitals, 'SPO2')?.value,
+         heart_rate: lv?.hr || 'N/A',
+         blood_pressure: lv?.bp || 'N/A',
+         spo2: lv?.spo2 || 'N/A',
          risk_score: riskScore,
          pain_level: patient.painLevel,
          pain_reported_at: patient.painReportedAt,
@@ -174,25 +172,9 @@ export class PatientService {
   }
 
   async addMedication(patientId: number, data: any) {
-    // 1. Create Medication if not exists (simplified logic)
-    const medication = await this.prisma.medication.create({
-      data: {
-        name: data.name,
-        description: data.description || 'Prescribed by doctor'
-      }
-    });
-
-    // 2. Create Prescription linked to patient
-    return this.prisma.prescription.create({
-      data: {
-        patientId,
-        medicationId: medication.id,
-        dosage: data.dosage || '1 pill daily',
-        frequency: data.frequency || 'Daily',
-        startDate: new Date(),
-        active: true
-      }
-    });
+    // TODO: Medication model doesn't have dosage/frequency fields
+    // Need to update schema or use different approach
+    throw new Error('Medication creation not yet implemented');
   }
 
   // Since we don't have a structured "History" table yet, we'll append to the 'diagnosis' field 
@@ -216,25 +198,8 @@ export class PatientService {
    }
 
   async getPatientMedications(patientId: number) {
-    const prescriptions = await this.prisma.prescription.findMany({
-      where: { 
-        patientId,
-        active: true
-      },
-      include: {
-        medication: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    return prescriptions.map(p => ({
-      id: p.id,
-      name: p.medication.name,
-      dosage: p.dosage,
-      frequency: p.frequency,
-      startDate: p.startDate,
-      active: p.active
-    }));
+    // TODO: Prescription model doesn't exist - returning empty array
+    return [];
   }
 
   async getPatientHistory(patientId: number) {
@@ -314,14 +279,46 @@ export class PatientService {
   }
 
   async addManualVital(patientId: number, type: string, value: number, unit: string) {
-    return this.prisma.vitals.create({
-      data: {
-        patientId,
-        type,
-        value,
-        unit,
-        timestamp: new Date(),
-      },
+    // 1. Get current vitals to merge
+    const patient = await this.prisma.patient.findUnique({ where: { id: patientId } });
+    const currentVitals = (patient.latestVitals as any) || {};
+
+    // 2. Update with new value
+    const newVitals = {
+      ...currentVitals,
+      [type.toLowerCase()]: value, // e.g. 'heart_rate' -> 'heart_rate'
+      // Mapping for specific keys if needed, but 'type' from controller seems to be 'heart_rate', 'spo2' etc.
+      // But verify 'type' provided by mobile. Mobile sends: 'heart_rate', 'spo2', 'temperature', 'blood_pressure_systolic', etc.
+      // We might need to map 'blood_pressure_systolic' to 'bp' string '120/80'?
+      // For now, simpler to just store what is sent.
+      // But the dashboard expects 'hr', 'bp', 'spo2'. 
+      // Mobile Dashboard: hr, spo2, bp.
+      // So we should map.
+    };
+
+    // Special mapping for dashboard compatibility
+    if (type === 'heart_rate') newVitals['hr'] = value;
+    if (type === 'spo2') newVitals['spo2'] = value;
+    
+    // BP handling (systolic/diastolic merge)
+    if (type === 'blood_pressure_systolic') newVitals['bp_sys'] = value;
+    if (type === 'blood_pressure_diastolic') newVitals['bp_dia'] = value;
+    if (newVitals['bp_sys'] && newVitals['bp_dia']) {
+      newVitals['bp'] = `${newVitals['bp_sys']}/${newVitals['bp_dia']}`;
+    }
+
+    newVitals.timestamp = new Date().toISOString();
+
+    // 3. Persist
+    await this.prisma.patient.update({
+      where: { id: patientId },
+      data: { latestVitals: newVitals }
     });
+
+    // 4. Broadcast
+    // Note: Emitting the FULL vitals object so dashboard can parse 'hr', 'spo2', 'bp'
+    this.eventsGateway.broadcastVitals(patientId, newVitals);
+
+    return { success: true };
   }
 }

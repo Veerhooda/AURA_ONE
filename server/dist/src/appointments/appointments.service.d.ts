@@ -10,6 +10,8 @@ export declare class AppointmentsService {
             };
         } & {
             id: number;
+            createdAt: Date;
+            updatedAt: Date;
             userId: number;
             mrn: string;
             dob: Date;
@@ -24,74 +26,77 @@ export declare class AppointmentsService {
             painLevel: number | null;
             painReportedAt: Date | null;
             latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
-            createdAt: Date;
-            updatedAt: Date;
+            version: number;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
         };
         doctor: {
             id: number;
-            createdAt: Date;
             email: string;
             name: string;
+            createdAt: Date;
+            userId: number | null;
             specialty: string;
         };
     } & {
         id: number;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         patientId: number;
+        doctorId: number;
+        notes: string | null;
         type: string;
         dateTime: Date;
-        notes: string | null;
-        doctorId: number;
     }>;
     getPatientAppointments(patientId: number): Promise<({
         doctor: {
             id: number;
-            createdAt: Date;
             email: string;
             name: string;
+            createdAt: Date;
+            userId: number | null;
             specialty: string;
         };
     } & {
         id: number;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         patientId: number;
+        doctorId: number;
+        notes: string | null;
         type: string;
         dateTime: Date;
-        notes: string | null;
-        doctorId: number;
     })[]>;
     getAllDoctors(): Promise<{
         id: number;
-        createdAt: Date;
         email: string;
         name: string;
+        createdAt: Date;
+        userId: number | null;
         specialty: string;
     }[]>;
     updateAppointmentStatus(id: number, status: string): Promise<{
         id: number;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         patientId: number;
+        doctorId: number;
+        notes: string | null;
         type: string;
         dateTime: Date;
-        notes: string | null;
-        doctorId: number;
     }>;
     cancelAppointment(id: number): Promise<{
         id: number;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         patientId: number;
+        doctorId: number;
+        notes: string | null;
         type: string;
         dateTime: Date;
-        notes: string | null;
-        doctorId: number;
     }>;
     getAvailableSlots(doctorId: number, date: Date): any[];
 }

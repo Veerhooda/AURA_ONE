@@ -145,7 +145,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> with Tick
         const SizedBox(width: 10),
         IconButton(
           icon: const Icon(CupertinoIcons.bell_fill, color: Colors.white70),
-          onPressed: () {}, // Future Notification Center
+          onPressed: () => context.push('/doctor/inbox'), // Notification Center / Inbox
         ),
         const SizedBox(width: 10),
       ],

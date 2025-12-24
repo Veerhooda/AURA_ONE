@@ -17,7 +17,6 @@ import '../screens/patient_history_screen.dart';
 import '../screens/profile_screen.dart';
 import '../widgets/vitals_card.dart';
 import '../widgets/vitals_graphs.dart';
-import '../../../chat/presentation/screens/chat_screen.dart';
 import 'appointments_screen.dart';
 import 'manual_vitals_screen.dart';
 import '../widgets/recovery_graph_card.dart';
@@ -89,6 +88,41 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
       };
     }
     return {};
+  }
+
+  Future<void> _openChatWithDoctor() async {
+    final pid = await ApiService().getPatientId();
+    if (pid == null) return;
+
+    try {
+      // 1. Check for existing conversations
+      final inbox = await ApiService().getPatientChatInbox(pid);
+      int conversationId;
+      String doctorName = "Dr. House"; // Default
+
+      if (inbox.isNotEmpty) {
+        // Pick first one
+        conversationId = inbox[0]['id'];
+        doctorName = inbox[0]['doctor']['name'] ?? doctorName;
+      } else {
+        // 2. Create new with default doctor (ID 1)
+        final conv = await ApiService().getConversation(pid, 1);
+        conversationId = conv['id'];
+        doctorName = conv['doctor']['name'] ?? doctorName;
+      }
+
+      if (mounted) {
+        context.push('/chat/thread/$conversationId?patientName=$doctorName&patientId=$pid'); 
+        // Note: Using 'patientName' param for title, here it's Doctor Name. 
+        // ChatThreadScreen expects 'patientName' as title. 
+        // I should probably rename param in ChatThreadScreen to 'title' or 'recipientName' for clarity, 
+        // but reused 'patientName' works for displaying the other party's name.
+      }
+    } catch (e) {
+      if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to open chat: $e")));
+      }
+    }
   }
 
   @override
@@ -171,9 +205,24 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
         final medsTaken = 0; 
 
         // Vitals Logic
-        final hr = (data['current_state']?['heart_rate'] as num?)?.toInt() ?? 0;
-        final spo2 = (data['current_state']?['spo2'] as num?)?.toInt() ?? 0;
-        final bp = data['current_state']?['blood_pressure']?.toString() ?? "--/--";
+        // Vitals Logic - Safely handle String or num
+        int hr = 0;
+        int spo2 = 0;
+        String bp = "--/--";
+
+        try {
+          final hrVal = data['current_state']?['heart_rate'];
+          if (hrVal is num) hr = hrVal.toInt();
+          else if (hrVal is String) hr = int.tryParse(hrVal) ?? 0;
+
+          final spo2Val = data['current_state']?['spo2'];
+          if (spo2Val is num) spo2 = spo2Val.toInt();
+          else if (spo2Val is String) spo2 = int.tryParse(spo2Val) ?? 0;
+          
+          bp = data['current_state']?['blood_pressure']?.toString() ?? "--/--";
+        } catch (e) {
+          print("Error parsing vitals: $e");
+        }
 
         return RefreshIndicator(
           onRefresh: () async {
@@ -204,6 +253,10 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
                   background: Container(color: Colors.black.withOpacity(0.6)),
                 ),
                 actions: [
+                  IconButton(
+                    icon: const Icon(CupertinoIcons.chat_bubble_text_fill, color: Colors.white70),
+                    onPressed: () => _openChatWithDoctor(),
+                  ),
                   IconButton(
                     icon: const Icon(CupertinoIcons.bell_fill, color: Colors.white70),
                     onPressed: () {},
@@ -237,9 +290,21 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
                         stream: SocketService().vitalsStream,
                         builder: (context, snap) {
                           final live = snap.data;
-                          final currentHr = live != null ? (live['hr'] as num?)?.toInt() ?? hr : hr;
-                          final currentSpo2 = live != null ? (live['spo2'] as num?)?.toInt() ?? spo2 : spo2;
-                          final currentBp = live != null ? live['bp']?.toString() ?? bp : bp;
+                          int currentHr = hr;
+                          int currentSpo2 = spo2;
+                          String currentBp = bp;
+                          
+                          if (live != null) {
+                            final hrVal = live['hr'];
+                            if (hrVal is num) currentHr = hrVal.toInt();
+                            else if (hrVal is String) currentHr = int.tryParse(hrVal) ?? hr;
+                            
+                            final spo2Val = live['spo2'];
+                            if (spo2Val is num) currentSpo2 = spo2Val.toInt();
+                            else if (spo2Val is String) currentSpo2 = int.tryParse(spo2Val) ?? spo2;
+                            
+                            currentBp = live['bp']?.toString() ?? bp;
+                          }
                           
                           return Column(
                             children: [
@@ -299,17 +364,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
                               MaterialPageRoute(builder: (_) => const AppointmentsScreen()),
                             );
                           }),
-                          _buildActionCard("Contact Doctor", CupertinoIcons.chat_bubble_2_fill, AppColors.primary, () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const ChatScreen(
-                                  recipientId: 1, // Mock doctor ID - in production, fetch from patient data
-                                  recipientName: "Dr. Smith",
-                                ),
-                              ),
-                            );
-                          }),
+                          _buildActionCard("Contact Doctor", CupertinoIcons.chat_bubble_2_fill, AppColors.primary, () => _openChatWithDoctor()),
                           _buildActionCard("Report Pain", CupertinoIcons.exclamationmark_bubble_fill, AppColors.error, () => context.push('/patient/pain')),
                           _buildActionCard("Log Vitals", CupertinoIcons.heart_circle_fill, AppColors.success, () {
                             Navigator.push(

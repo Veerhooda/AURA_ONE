@@ -10,14 +10,25 @@ exports.EventsModule = void 0;
 const common_1 = require("@nestjs/common");
 const events_gateway_1 = require("./events.gateway");
 const prisma_module_1 = require("../prisma/prisma.module");
-const chat_module_1 = require("../chat/chat.module");
+const vitals_module_1 = require("../vitals/vitals.module");
+const emergency_module_1 = require("../emergency/emergency.module");
+const jwt_1 = require("@nestjs/jwt");
 let EventsModule = class EventsModule {
 };
 exports.EventsModule = EventsModule;
 exports.EventsModule = EventsModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, chat_module_1.ChatModule],
+        imports: [
+            prisma_module_1.PrismaModule,
+            vitals_module_1.VitalsModule,
+            emergency_module_1.EmergencyModule,
+            jwt_1.JwtModule.register({
+                secret: process.env.JWT_SECRET || 'your-secret-key',
+                signOptions: { expiresIn: '1h' },
+            }),
+        ],
         providers: [events_gateway_1.EventsGateway],
+        exports: [events_gateway_1.EventsGateway],
     })
 ], EventsModule);
 //# sourceMappingURL=events.module.js.map

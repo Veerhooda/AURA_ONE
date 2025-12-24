@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -41,11 +43,15 @@ class MonitorScreen extends StatefulWidget {
 class _MonitorScreenState extends State<MonitorScreen> {
   final _simulationService = SimulationService();
   final _socketService = SocketService();
-  final _ipController = TextEditingController(text: '172.20.10.3');
+  final _ipController = TextEditingController(text: '172.20.10.2');
   final _emailController = TextEditingController();
   
   StreamSubscription? _subscription;
   bool _isSimulating = false;
+  bool _isConnecting = false;
+  String? _accessToken;
+  String _connectionStatus = 'Disconnected';
+  Color _statusColor = Colors.red;
   
   // Data Buffers for Graphs
   final List<FlSpot> _ecgPoints = [];
@@ -58,6 +64,15 @@ class _MonitorScreenState extends State<MonitorScreen> {
   String _bp = "--/--";
 
   @override
+  void initState() {
+    super.initState();
+    // Auto-connect on startup
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _connect();
+    });
+  }
+
+  @override
   void dispose() {
     _subscription?.cancel();
     _simulationService.stop();
@@ -66,6 +81,13 @@ class _MonitorScreenState extends State<MonitorScreen> {
   }
 
   void _toggleSimulation() {
+    if (!_socketService.isConnected) {
+       ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please connect to server first!"), backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
     setState(() {
       _isSimulating = !_isSimulating;
     });
@@ -76,13 +98,13 @@ class _MonitorScreenState extends State<MonitorScreen> {
         _updateData(data);
         // Send to Server
         if (_socketService.isConnected) {
-          // Add email to payload for backend lookup
+          // Add email to payload for backend lookup if needed
           if (_emailController.text.isNotEmpty) {
              data['email'] = _emailController.text;
           }
-          // Remove hardcoded ID if we want to rely on email, or keep it as fallback?
-          // The backend uses email if patientId is missing.
-          // data['patientId'] = 1; 
+          // Default to patient 1 if no specific email
+           data['patientId'] = 1; 
+           
           _socketService.emitData(data);
         }
       });
@@ -113,8 +135,87 @@ class _MonitorScreenState extends State<MonitorScreen> {
     });
   }
 
-  void _connect() {
-    _socketService.connect(_ipController.text);
+  Future<void> _connect() async {
+    print("🔌 Starting connection to ${_ipController.text}...");
+    setState(() {
+      _isConnecting = true;
+      _connectionStatus = 'Connecting...';
+      _statusColor = Colors.orange;
+    });
+    
+    final ip = _ipController.text;
+
+    try {
+      print("📡 Attempting login to http://$ip:3001/auth/login");
+      
+      // 1. Authenticate
+      final response = await http.post(
+        Uri.parse('http://$ip:3001/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': 'patient@aura.com', 
+          'password': 'password123'
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      print("📥 Login response: ${response.statusCode}");
+      print("📦 Response body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        print("📊 Parsed data keys: ${data.keys}");
+        
+        // Try both field names (accessToken and access_token)
+        _accessToken = data['accessToken'] ?? data['access_token'];
+        
+        if (_accessToken != null) {
+          print("✅ Login Successful. Token: ${_accessToken!.substring(0, 20)}...");
+          
+          // 2. Connect Socket with Token
+          _socketService.connect(ip, _accessToken!);
+          
+          // Wait a moment for socket to connect
+          await Future.delayed(const Duration(milliseconds: 500));
+          
+          if (mounted) {
+            setState(() {
+              _connectionStatus = _socketService.isConnected ? 'Connected ✓' : 'Socket connecting...';
+              _statusColor = _socketService.isConnected ? Colors.green : Colors.orange;
+            });
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Connected securely!"), backgroundColor: Colors.green),
+            );
+          }
+        } else {
+          throw Exception('No access token in response');
+        }
+      } else {
+        final body = response.body;
+        print("❌ Login failed: ${response.statusCode} - $body");
+        throw Exception('Login Failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("❌ Connection Error: $e");
+      print("Stack trace: ${StackTrace.current}");
+      
+      if (mounted) {
+        setState(() {
+          _connectionStatus = 'Failed: ${e.toString().substring(0, 30)}';
+          _statusColor = Colors.red;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Connection Failed: $e"),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isConnecting = false);
+    }
   }
 
   void _triggerEmergency() {
@@ -127,9 +228,10 @@ class _MonitorScreenState extends State<MonitorScreen> {
     
     _socketService.emit('patient.emergency', {
       'patientId': 1,
-      'room': '302',
-      'type': 'CRITICAL_VITALS',
-      'timestamp': DateTime.now().toIso8601String(),
+      'severity': 'CRITICAL',
+      'vitalType': 'FALL', // Using FALL as generic emergency proxy
+      'value': 0,
+      'notes': 'Manual Emergency Trigger from Simulator',
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -141,10 +243,37 @@ class _MonitorScreenState extends State<MonitorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("AURA Vitals Monitor"),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("AURA Vitals Monitor", style: TextStyle(fontSize: 18)),
+            Text(
+              _connectionStatus,
+              style: TextStyle(fontSize: 12, color: _statusColor),
+            ),
+          ],
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          if (_isConnecting)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+            )
+          else
+            IconButton(
+              icon: Icon(
+                _socketService.isConnected ? Icons.check_circle : Icons.refresh,
+                color: _socketService.isConnected ? Colors.green : Colors.orange,
+              ),
+              onPressed: _connect,
+              tooltip: 'Reconnect',
+            ),
           IconButton(icon: const Icon(Icons.settings), onPressed: _showSettings),
         ],
       ),

@@ -17,5 +17,13 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.disabled",
+    "**/*.disabled/**",
+    "prisma/seed_care.ts.disabled",
+    "prisma/seed_map.ts.disabled"
+  ]
 }

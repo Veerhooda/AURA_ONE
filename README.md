@@ -181,6 +181,46 @@ npm run dev
 
 ---
 
+## 🔧 Recent System Fixes & Improvements
+
+### ✅ Authentication & Session Management
+
+- **Dynamic User Profiles**: `GET /auth/me` endpoint for retrieving authenticated user's full profile
+- **JWT Strategy Alignment**: Fixed `req.user.userId` vs `req.user.sub` mismatch across controllers
+- **WebSocket Authentication**: Token handling now supports both `auth` and `query` parameters for reliability
+- **Multi-Role Registration**: Server supports creating doctor, nurse, patient, and family accounts
+
+### ✅ Chat System Overhaul
+
+- **Chat Persistence Fixed**: Messages now correctly stored and retrieved from database
+- **Doctor Inbox Working**: Inbox loads with message previews and unread counts
+- **Dynamic ID Resolution**: Removed all hardcoded IDs - now uses profile-based lookup
+- **Message Reactivity**: Fixed Flutter UI not updating when new messages arrive
+- **API Endpoint Alignment**: Added `GET /chat/messages/:id` to match mobile app expectations
+
+### ✅ Nurse Dashboard Backend
+
+- **Care Module Enabled**: Re-enabled and registered previously disabled Care module
+- **Task Endpoints Live**: `GET /care/task` and `GET /care/ward` now functional
+- **Intelligent Prioritization**: Tasks sorted by priority, time urgency, and patient risk score
+- **Mobile Compatibility**: API matches Flutter app's expected response structure
+
+### ✅ Emergency Alert System
+
+- **Trigger Fixed**: Health Data simulator now sends valid emergency payloads
+- **DTO Validation**: Payload format matches `EmergencyAlertDto` (severity, vitalType, value, notes)
+- **Real-time Broadcast**: Server correctly relays emergency alerts to subscribed mobile clients
+- **EmergencyOverlay**: Mobile app displays critical alerts with visual/audio cues
+
+### ✅ Performance & Stability
+
+- **Vitals Parsing**: Fixed type handling for heart rate, SpO2, and blood pressure (supports String/num)
+- **Prisma Validation**: Resolved schema mismatches in PatientService
+- **TypeScript Compilation**: Excluded `.disabled` folders, fixed missing imports
+- **Socket Reconnection**: Auto-reconnect and re-subscribe logic for WebSocket connections
+
+---
+
 ## 🔐 Test Accounts
 
 Seed the database to create test accounts:

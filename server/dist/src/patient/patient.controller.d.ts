@@ -59,6 +59,8 @@ export declare class PatientController {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        version: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
     })[]>;
@@ -78,6 +80,8 @@ export declare class PatientController {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        version: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -97,6 +101,8 @@ export declare class PatientController {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        version: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -116,6 +122,8 @@ export declare class PatientController {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        version: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -137,20 +145,12 @@ export declare class PatientController {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        version: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
-    addMedication(id: number, data: any): Promise<{
-        id: number;
-        createdAt: Date;
-        patientId: number;
-        dosage: string;
-        frequency: string;
-        startDate: Date;
-        endDate: Date | null;
-        active: boolean;
-        medicationId: number;
-    }>;
+    addMedication(id: number, data: any): Promise<void>;
     addHistory(id: number, note: string): Promise<{
         id: number;
         userId: number;
@@ -167,17 +167,12 @@ export declare class PatientController {
         painLevel: number | null;
         painReportedAt: Date | null;
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
+        version: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
-    getPatientMedications(id: number): Promise<{
-        id: number;
-        name: string;
-        dosage: string;
-        frequency: string;
-        startDate: Date;
-        active: boolean;
-    }[]>;
+    getPatientMedications(id: number): Promise<any[]>;
     getPatientHistory(id: number): Promise<{
         date: string;
         type: string;
@@ -203,11 +198,6 @@ export declare class PatientController {
         value: number;
         unit: string;
     }): Promise<{
-        id: number;
-        timestamp: Date;
-        patientId: number;
-        type: string;
-        value: number;
-        unit: string;
+        success: boolean;
     }>;
 }

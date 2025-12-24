@@ -5,12 +5,14 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { PatientModule } from './patient/patient.module';
 import { VitalsModule } from './vitals/vitals.module';
-import { NavigationModule } from './navigation/navigation.module';
 import { AiModule } from './ai/ai.module';
 import { EventsModule } from './events/events.module';
-import { MedicationModule } from './medication/medication.module';
 import { ChatModule } from './chat/chat.module';
 import { AppointmentsModule } from './appointments/appointments.module';
+import { AuditModule } from './audit/audit.module';
+import { CareModule } from './care/care.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -20,14 +22,23 @@ import { AppointmentsModule } from './appointments/appointments.module';
     UsersModule,
     PatientModule,
     VitalsModule,
-    NavigationModule,
     AiModule,
     EventsModule,
-    MedicationModule,
     ChatModule,
-    AppointmentsModule
+    AppointmentsModule,
+    AuditModule,
+    CareModule,
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 10,
+    }]),
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
+  ],
 })
-export class AppModule {} // Main Module
+export class AppModule {}

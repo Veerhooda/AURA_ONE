@@ -50,8 +50,19 @@ let AuthService = class AuthService {
                 isProfileComplete = false;
             }
         }
+        let doctorId = null;
+        if (user.role === 'DOCTOR') {
+            const doctor = await this.prisma.doctor.findFirst({
+                where: { email: user.email }
+            });
+            if (doctor) {
+                doctorId = doctor.id;
+                payload['doctorId'] = doctorId;
+            }
+        }
         return {
-            access_token: this.jwtService.sign(payload),
+            access_token: this.jwtService.sign(payload, { expiresIn: '8h' }),
+            refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
             user: {
                 id: user.id,
                 name: user.name,
@@ -59,11 +70,26 @@ let AuthService = class AuthService {
                 role: user.role,
             },
             patient: patient,
+            doctorId: doctorId,
             isProfileComplete,
         };
     }
+    async refreshAccessToken(refreshToken) {
+        try {
+            const payload = this.jwtService.verify(refreshToken);
+            const newAccessToken = this.jwtService.sign(Object.assign({ sub: payload.sub, email: payload.email, role: payload.role }, (payload.doctorId && { doctorId: payload.doctorId })), { expiresIn: '8h' });
+            return {
+                access_token: newAccessToken,
+                refresh_token: refreshToken,
+            };
+        }
+        catch (error) {
+            throw new Error('Invalid or expired refresh token');
+        }
+    }
     async register(data) {
-        const hashedPassword = await bcrypt.hash(data.password, 10);
+        const BCRYPT_ROUNDS = 12;
+        const hashedPassword = await bcrypt.hash(data.password, BCRYPT_ROUNDS);
         const { createHash } = await Promise.resolve().then(() => require('crypto'));
         const blockchainId = createHash('sha256').update(data.email + Date.now().toString()).digest('hex');
         let newUser;
@@ -97,7 +123,59 @@ let AuthService = class AuthService {
                 },
             });
         }
+        else if (data.role === 'DOCTOR') {
+            try {
+                await this.prisma.doctor.upsert({
+                    where: { email: data.email },
+                    update: {
+                        userId: newUser.id,
+                        name: data.name,
+                    },
+                    create: {
+                        userId: newUser.id,
+                        name: data.name,
+                        email: data.email,
+                        specialty: data.specialty || 'General Practice',
+                    },
+                });
+            }
+            catch (e) {
+                console.warn('Doctor profile creation warning:', e);
+            }
+        }
+        else if (data.role === 'NURSE') {
+        }
         return newUser;
+    }
+    async getProfile(userId) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            throw new common_1.UnauthorizedException('User not found');
+        }
+        const { password } = user, result = __rest(user, ["password"]);
+        let profile = Object.assign({}, result);
+        if (user.role === 'PATIENT') {
+            const patient = await this.prisma.patient.findFirst({
+                where: { userId: user.id },
+            });
+            profile.patient = patient;
+            profile.patientId = patient === null || patient === void 0 ? void 0 : patient.id;
+        }
+        else if (user.role === 'DOCTOR') {
+            let doctor = await this.prisma.doctor.findFirst({
+                where: { userId: user.id },
+            });
+            if (!doctor) {
+                doctor = await this.prisma.doctor.findFirst({
+                    where: { email: user.email },
+                });
+            }
+            profile.doctor = doctor;
+            profile.doctorId = doctor === null || doctor === void 0 ? void 0 : doctor.id;
+        }
+        return profile;
     }
 };
 exports.AuthService = AuthService;

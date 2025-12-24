@@ -37,21 +37,67 @@ export class AuthService {
       }
     }
 
+    // Add doctorId to payload for DOCTOR role (C17 fix)
+    let doctorId = null;
+    if (user.role === 'DOCTOR') {
+      // Doctor model uses email, not userId relation yet
+      const doctor = await this.prisma.doctor.findFirst({ 
+        where: { email: user.email } 
+      });
+      if (doctor) {
+        doctorId = doctor.id;
+        payload['doctorId'] = doctorId;
+      }
+    }
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload, { expiresIn: '8h' }),
+      refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
       },
-      patient: patient, // Return full patient details (MRN, id, etc.)
+      patient: patient,
+      doctorId: doctorId, // Include for DOCTOR role
       isProfileComplete,
     };
   }
 
+  /**
+   * Finding #2: Refresh Access Token
+   * Validates refresh token and issues new access token
+   */
+  async refreshAccessToken(refreshToken: string) {
+    try {
+      // Verify refresh token
+      const payload = this.jwtService.verify(refreshToken);
+
+      // Generate new access token with same payload
+      const newAccessToken = this.jwtService.sign(
+        {
+          sub: payload.sub,
+          email: payload.email,
+          role: payload.role,
+          ...(payload.doctorId && { doctorId: payload.doctorId }),
+        },
+        { expiresIn: '8h' },
+      );
+
+      return {
+        access_token: newAccessToken,
+        refresh_token: refreshToken,
+      };
+    } catch (error) {
+      throw new Error('Invalid or expired refresh token');
+    }
+  }
+
   async register(data: any) {
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    // Use 12 rounds for stronger password hashing (C11 fix)
+    const BCRYPT_ROUNDS = 12;
+    const hashedPassword = await bcrypt.hash(data.password, BCRYPT_ROUNDS);
     
     // Generate Fake Blockchain ID (SHA-256 of email + timestamp)
     const { createHash } = await import('crypto');
@@ -76,7 +122,7 @@ export class AuthService {
       throw error;
     }
 
-    // If role is PATIENT, create Patient record
+    // Role-specific Profile Creation
     if (data.role === 'PATIENT') {
        await this.prisma.patient.create({
          data: {
@@ -89,10 +135,69 @@ export class AuthService {
            symptoms: data.symptoms || 'None recorded',
            bed: 'Unassigned',
            ward: 'General',
-         } as any, // Cast to any to bypass stale type definition
+         } as any, 
        });
+    } else if (data.role === 'DOCTOR') {
+      try {
+        await this.prisma.doctor.upsert({
+          where: { email: data.email },
+          update: {
+            userId: newUser.id, // Link existing doctor record to this user
+            name: data.name,
+          },
+          create: {
+            userId: newUser.id,
+            name: data.name,
+            email: data.email,
+            specialty: data.specialty || 'General Practice',
+          },
+        });
+      } catch (e) {
+        console.warn('Doctor profile creation warning:', e);
+        // Continue, as User is created. Profile can be fixed later.
+      }
+    } else if (data.role === 'NURSE') {
+       // No specific Nurse profile model yet.
+       // Future: Create Nurse profile with ward info.
     }
     
     return newUser;
+  }
+
+  async getProfile(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const { password, ...result } = user;
+    let profile: any = { ...result };
+
+    if (user.role === 'PATIENT') {
+      const patient = await this.prisma.patient.findFirst({
+        where: { userId: user.id },
+      });
+      profile.patient = patient;
+      profile.patientId = patient?.id;
+    } else if (user.role === 'DOCTOR') {
+      // Find doctor by userId relation OR by email fallback
+      let doctor = await this.prisma.doctor.findFirst({
+        where: { userId: user.id },
+      });
+
+      if (!doctor) {
+        doctor = await this.prisma.doctor.findFirst({
+          where: { email: user.email },
+        });
+      }
+
+      profile.doctor = doctor;
+      profile.doctorId = doctor?.id;
+    }
+
+    return profile;
   }
 }
