@@ -55,6 +55,35 @@ classDiagram
 
 ---
 
+## 🛡️ Enterprise-Grade Security
+
+AURA ONE is built with a **"Zero-Trust, Privacy-First"** architecture, exceeding standard MVP requirements.
+
+### 🔒 Bank-Level Encryption
+
+We don't trust the database. Sensitive patient data is encrypted **at the application layer** before it ever touches the disk.
+
+- **Algorithm**: AES-256-GCM (Authenticated Encryption)
+- **Key Strength**: 256-bit keys with unique 128-bit IVs per record.
+- **Integrity**: Tag verification prevents ciphertext tampering.
+
+### 👁️ HIPAA-Ready Audit Trails
+
+Every action is watched. The **Audit Module** creates an immutable ledger of access:
+
+- **Who**: User ID & IP Address.
+- **What**: Specific resource accessed (e.g., "Viewed Patient Vitals").
+- **When**: Microsecond-precision timestamps.
+- **Why**: Contextual metadata (e.g., "Emergency Override").
+
+### 🚦 Granular Access Control (RBAC)
+
+We go beyond simple roles. Our **Consent Engine** evaluates relationships in real-time.
+
+- _Example_: A Doctor cannot view just _any_ patient. They must be explicitly assigned to the patient's care team in the `UserPatientRelation` table.
+
+---
+
 ## 🔌 API & Event Catalog
 
 ### Real-Time Events (Socket.IO)
