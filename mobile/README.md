@@ -1,74 +1,74 @@
-# AURA ONE Mobile App 📱
+# AURA ONE Mobile Experience
 
-The primary interface for Patients, Doctors, and Family Members in the AURA ONE ecosystem. Built with Flutter.
+![Flutter](https://img.shields.io/badge/Flutter-Production-blue)
+![Render](https://img.shields.io/badge/Engine-Skia%2FImpeller-cyan)
 
-## 🌟 Features
+**One Codebase, Four Unique Experiences.**
 
-### For Patients
+The AURA ONE mobile client is an adaptive Flutter application that morphs its interface and capabilities based on the authenticated user's role. It is engineered for high-performance rendering of real-time medical data.
 
-- **My Health Hub**:
-  - Real-time vitals monitoring (Heart Rate, SpO2, BP) with **premium gradient visualizations**.
-  - Medication tracking with progress bars.
-  - "Current Status" banner for hospital admission details.
-- **Appointments & OPD**:
-  - Book appointments with doctors.
-  - View upcoming and past appointment history.
-- **Vitals Tracking**:
-  - Manual entry logging.
-  - Real-time visualization from connected hardware.
-- **AI Recovery Analysis**:
-  - AI-generated medical summaries.
-  - Visual recovery trend graphs.
-- **Indoor Navigation**:
-  - Interactive hospital map with A\* pathfinding.
-  - Search for Points of Interest (Reception, Labs, Wards).
-- **Profile**: View family guardians who are monitoring you.
+---
 
-### For Family Members (NEW)
+## 🌟 Adaptive Persona System
 
-- **Family Dashboard**:
-  - Monitor multiple patients in a single view.
-  - Create new patient accounts with auto-generated MRN.
-  - Link existing patients using Patient ID.
-  - View real-time status (Stable/Warning/Critical).
-  - Quick actions for navigation and chat.
+The app identifies the user claim (`role`) upon login and hydrates the appropriate "Micro-App":
 
-### For Doctors
+### 1. Patient Experience ("My Health Hub")
 
-- **Profile Management**:
-  - View and edit professional details (Specialty, Bio).
-- **Patient Monitor**:
-  - Live streaming of patient waveforms.
-  - Vital signs alerts and history.
-- **Appointments**:
-  - View daily schedule and patient booking details.
+- **Goal**: Empowerment & Clarity.
+- **Key Feature**: **Digital Twin Visualization**. A 3D-rendered representation of the patient's current health state, highlighting pain points or surgical sites.
+- **UX Detail**: We prioritize plain language and soothing gradients (Teal/Blue) to reduce anxiety.
 
-## 🛠️ Setup & Running
+### 2. Provider Experience ("Clinical Cockpit")
 
-1. **Prerequisites**:
+- **Goal**: Efficiency & Speed.
+- **Key Feature**: **Ward Eye View**. Doctors and Nurses get a distinct dashboard optimized for rapid scanning of multiple live vitals simultaneously.
+- **UX Detail**: High-contrast alerts (Red/Orange) and information density are prioritized over aesthetics.
 
-   - Flutter SDK installed.
-   - AURA ONE Server running on port `3001`.
+### 3. Family Experience ("Guardian View")
 
-2. **Configuration**:
+- **Goal**: Reassurance.
+- **Key Feature**: **Status Ledger**. A simplified timeline of the patient's major status changes (e.g., "Surgery Started", "In Recovery", "Vitals Stable").
 
-   - Update server IP in `lib/services/api_service.dart`.
-   - Update socket URL in `lib/main.dart`.
-   - Find your LAN IP: `ifconfig | grep "inet " | grep -v 127.0.0.1`
+---
 
-3. **Run**:
-   ```bash
-   flutter pub get
-   flutter run
-   ```
+## 🎨 Design Engineering
 
-## 📦 Architecture
+We implemented a custom design system aimed at **"Medical Clarity"**:
 
-- **State Management**: `setState` for local UI, `StreamBuilder` for real-time socket data.
-- **Navigation**: `go_router` for deep linking and route management.
-- **Networking**: `socket_io_client` for WebSockets, `http` for REST APIs.
-- **Theme**: Custom `AppColors` and `AppTypography` for consistent dark mode styling.
+- **Glassmorphism Engine**: Custom-built `GlassContainer` widgets that use `BackdropFilter` sparingly to maintain 60fps even on mid-range devices.
+- **Real-Time Graphing**: We utilize `flutter_chart` with optimized repaint boundaries to draw ECG waveforms at 30Hz without janking the main thread.
+- **Accessibility**: Full support for dynamic type sizes and high-contrast modes for elderly patients.
 
-## 📱 Screenshots
+---
 
-📸 **[View Screenshots & Demo Videos](https://drive.google.com/drive/folders/1o_omeA24i_tbTIIRAw_gdf4a5VHOIFEt)**
+## 🛠️ Technical Implementation
+
+### State Management
+
+We rely on **Riverpod** for a reactive, unidirectional data flow:
+
+- `SocketProvider`: Manages the websocket singleton and connection lifecycle.
+- `UserProvider`: Caches profile data to minimize API calls.
+- `VitalsProvider`: A high-frequency stream provider that debounces updates to UI widgets.
+
+### Indoor Navigation
+
+We implemented **A\* Pathfinding** natively in Dart for the hospital map feature, allowing for offline route calculation between "Reception" and specific "Ward Rooms".
+
+---
+
+## 🚀 Development Setup
+
+1.  **Environment**: Flutter 3.10+ required.
+2.  **Configuration**:
+    - Set your API target in `lib/services/api_service.dart`.
+3.  **Run**:
+    ```bash
+    flutter run --release
+    ```
+    > **Tip**: Use `--release` mode to test the true smoothnes of the waveform animations.
+
+---
+
+_Mobile Engineering Team_
