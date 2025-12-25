@@ -103,6 +103,36 @@ cd health_data && flutter run
 
 ---
 
+## 📚 Documentation Hub
+
+<table>
+<tr>
+<td align="center" width="33%">
+<a href="./server/README.md">
+<h3>⚙️ Server</h3>
+</a>
+<p><em>API Reference • Security • Architecture</em></p>
+<img src="https://img.shields.io/badge/NestJS-Backend-E0234E?style=flat-square"/>
+</td>
+<td align="center" width="33%">
+<a href="./mobile/README.md">
+<h3>📱 Mobile</h3>
+</a>
+<p><em>Personas • Design System • Screens</em></p>
+<img src="https://img.shields.io/badge/Flutter-App-02569B?style=flat-square"/>
+</td>
+<td align="center" width="33%">
+<a href="./health_data/README.md">
+<h3>🧬 Simulator</h3>
+</a>
+<p><em>Signals • Testing • Configuration</em></p>
+<img src="https://img.shields.io/badge/Dev-Tool-9C27B0?style=flat-square"/>
+</td>
+</tr>
+</table>
+
+---
+
 ## 🛡️ Security Highlights
 
 <table>
