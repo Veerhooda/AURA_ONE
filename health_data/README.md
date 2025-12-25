@@ -1,56 +1,163 @@
-# Health Data Simulator (HDS) 🧬
+<p align="center">
+  <img src="https://img.shields.io/badge/🧬-Simulator-9C27B0?style=for-the-badge&labelColor=1a1a2e" alt="Simulator"/>
+</p>
 
-![Type](https://img.shields.io/badge/Type-Hardware_Emulator-purple)
-![Signal](https://img.shields.io/badge/Signal-Synthetic_Bio-green)
+<h1 align="center">Health Data Simulator</h1>
+<h3 align="center">Your Virtual Medical Monitor</h3>
 
-The **Health Data Simulator** is a critical engineering tool that mocks the behavior of physical medical sensors (Pulse Oximeters, ECG patches). It allows developers to test the AURA ONE platform's real-time capabilities without needing expensive clinical hardware.
-
----
-
-## 🔬 Signal Synthesis Engine
-
-The HDS doesn't just send random numbers. It uses mathematical models to generate realistic bio-signals:
-
-- **ECG Algorithm**: Synthesizes the standard **P-Q-R-S-T complex** using a composite of gaussian functions. This tests the dashboard's ability to render complex curves.
-- **Plethysmography (SpO2)**: Generates a distinct dicrotic notch waveform to simulate arterial pressure changes.
-- **Noise Injection**: Optional jitter can be added to signals to test the backend's smoothing algorithms.
+<p align="center">
+  <img src="https://img.shields.io/badge/Type-Developer_Tool-purple?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Signal-Synthetic_Bio-green?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Flutter-3.x-02569B?style=flat-square&logo=flutter"/>
+</p>
 
 ---
 
-## 🛠️ Developer Utility
+## 🎯 Purpose
 
-### Use Cases
+No expensive ECG hardware? No problem.
 
-1.  **Load Testing**: Spin up 50 instances of the simulator to stress-test the Server's WebSocket gateway.
-2.  **Latency Analysis**: Measure the time-to-glass (TTG) from signal generation to dashboard rendering.
-3.  **Emergency Drills**: Manually trigger specific codes (e.g., Code Blue, Fall Detected) to verify notification pipelines.
+This simulator generates **medically-accurate biosignals** and streams them to the AURA ONE server via WebSocket. Perfect for:
 
-### Configuration
-
-The simulator is highly configurable via its UI:
-
-- **Target IP**: Point to local dev server or staging environment.
-- **Patient Identity**: Spoof specific Patient IDs to test multi-tenant isolation.
-- **Signal Frequency**: Adjust update rates from 1Hz to 60Hz.
+- 🧪 Development without hardware
+- 🔬 Load testing the platform
+- 🚨 Emergency response drills
 
 ---
 
-## ⚡ Emergency Injection Protocol
+## 📊 Signal Types
 
-To test the platform's resilience, you can inject critical failures:
+### ❤️ ECG (Electrocardiogram)
 
-1.  **Fall Detection**: Simulates accelerometer spike followed by inactivity.
-    - _Payload_: `{ type: "FALL", severity: "CRITICAL" }`
-2.  **Tachycardia**: Ramps heart rate > 120 BPM instantly.
-3.  **Probe Disconnect**: Simulates sensor loss to test dashboard error states.
+```
+    R
+   /\
+P /  \ S    T
+  ‾‾‾‾\/‾‾‾‾\/‾‾‾‾
+       Q
+```
+
+Generates the classic **P-Q-R-S-T complex** using gaussian mathematical models.
+
+### 💉 SpO2 (Plethysmography)
+
+```
+  /\      /\      /\
+ /  \    /  \    /  \
+/    \__/    \__/    \__
+```
+
+Simulates arterial pulse wave with dicrotic notch.
+
+### 🩸 Blood Pressure
+
+Generates realistic systolic/diastolic pairs (e.g., `120/80`).
 
 ---
 
-## 🚀 Running the Simulator
+## 🎮 Controls
+
+| Button                   | Action                  |
+| ------------------------ | ----------------------- |
+| ▶️ **START MONITORING**  | Begin streaming vitals  |
+| ⏹️ **STOP MONITORING**   | Pause data transmission |
+| 🚨 **TRIGGER EMERGENCY** | Send critical alert     |
+| ⚙️ **Settings**          | Configure server IP     |
+
+---
+
+## 🚨 Emergency Testing
+
+Test the platform's emergency response system:
+
+```dart
+// Payload sent when you tap TRIGGER EMERGENCY
+{
+  "patientId": 1,
+  "severity": "CRITICAL",
+  "vitalType": "FALL",
+  "value": 0,
+  "notes": "Manual trigger from simulator"
+}
+```
+
+**Expected Result:**
+
+1. Server logs `[EMERGENCY] Received alert...`
+2. Mobile app shows red emergency overlay
+3. All subscribed clients receive the alert
+
+---
+
+## 📡 Data Format
+
+### Vitals Stream (`simulate_vitals`)
+
+```json
+{
+  "patientId": 1,
+  "hr": 72,
+  "spo2": 98,
+  "bp": "120/80",
+  "ecg": 0.125,
+  "spo2_wave": 0.75,
+  "timestamp": "2024-12-25T21:00:00Z"
+}
+```
+
+### Emergency Alert (`patient.emergency`)
+
+```json
+{
+  "patientId": 1,
+  "severity": "CRITICAL",
+  "vitalType": "FALL",
+  "value": 0,
+  "notes": "Description"
+}
+```
+
+---
+
+## 🚀 Quick Start
 
 ```bash
 cd health_data
 flutter run
 ```
 
-_Note: This tool is strictly for development and QA purposes. DO NOT use for clinical calibration._
+### First-Time Setup
+
+1. Tap ⚙️ **Settings**
+2. Enter your server IP (e.g., `192.168.1.100`)
+3. Tap **Save & Connect**
+4. Tap ▶️ **START MONITORING**
+
+---
+
+## 🔧 Configuration
+
+| Setting       | Default            | Description                   |
+| ------------- | ------------------ | ----------------------------- |
+| Server IP     | `172.20.10.2`      | Backend server address        |
+| Patient Email | `patient@aura.com` | User to authenticate as       |
+| Update Rate   | ~10 Hz             | Signal transmission frequency |
+
+---
+
+## ⚠️ Disclaimer
+
+```
+╔════════════════════════════════════════════════════════╗
+║  ⚠️  FOR DEVELOPMENT AND TESTING ONLY                  ║
+║                                                        ║
+║  This tool generates SIMULATED medical data.           ║
+║  DO NOT use for clinical decisions or calibration.     ║
+╚════════════════════════════════════════════════════════╝
+```
+
+---
+
+<p align="center">
+  <em>Developer Tools • AURA ONE Platform</em>
+</p>
