@@ -13,6 +13,7 @@ import PatientSnapshot from './pages/nurse/PatientSnapshot';
 
 import AdminLayout from './layouts/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import UserManagement from './pages/admin/UserManagement';
 import FamilyLayout from './layouts/FamilyLayout';
 import FamilyDashboard from './pages/family/FamilyDashboard';
 
@@ -40,7 +41,7 @@ function App() {
 
           <Route path="/admin" element={<AdminLayout />}>
              <Route index element={<AdminDashboard />} />
-             <Route path="users" element={<div className="text-white">Users</div>} />
+             <Route path="users" element={<UserManagement />} />
           </Route>
 
           <Route path="/family" element={<FamilyLayout />}>
