@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { ClipboardList, Users, AlertCircle, Clock } from 'lucide-react';
+import { ClipboardList, Users, AlertCircle, Clock, User } from 'lucide-react';
 
 const NurseLayout = () => {
     const navItems = [
@@ -9,6 +9,7 @@ const NurseLayout = () => {
         { path: '/nurse/patients', label: 'Assigned Patients', icon: Users },
         { path: '/nurse/alerts', label: 'Emergency Alerts', icon: AlertCircle },
         { path: '/nurse/handover', label: 'Shift Handover', icon: Clock },
+        { path: '/nurse/profile', label: 'Profile', icon: User },
     ];
 
     return (

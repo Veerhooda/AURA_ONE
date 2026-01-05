@@ -1,14 +1,15 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { Activity, Bell, Calendar, FileText } from 'lucide-react';
+import { Activity, Bell, Calendar, User } from 'lucide-react';
 
 const FamilyLayout = () => {
     const navItems = [
         { path: '/family', label: 'Patient Status', icon: Activity, end: true },
         { path: '/family/updates', label: 'Doctor Updates', icon: Bell },
-        { path: '/family/visiting', label: 'Visiting Hours', icon: Calendar },
-        { path: '/family/consent', label: 'Consents', icon: FileText },
+        { path: '/family/visiting', label: 'Visiting Access', icon: Calendar },
+        { path: '/family/profile', label: 'Profile', icon: User },
+
     ];
 
     return (

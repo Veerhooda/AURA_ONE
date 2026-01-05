@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { LayoutDashboard, Users, HeartPulse, FileText, Calendar } from 'lucide-react';
+import { LayoutDashboard, Users, HeartPulse, FileText, Calendar, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DoctorLayout = () => {
@@ -11,6 +11,7 @@ const DoctorLayout = () => {
         { path: '/doctor/monitoring', label: 'Live Monitoring', icon: HeartPulse },
         { path: '/doctor/patients', label: 'Patient Records', icon: FileText },
         { path: '/doctor/schedule', label: 'Schedule', icon: Calendar },
+        { path: '/doctor/profile', label: 'Profile', icon: User },
     ];
 
     return (

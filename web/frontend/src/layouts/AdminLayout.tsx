@@ -1,15 +1,16 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { LayoutGrid, Users, Settings, Database, Shield } from 'lucide-react';
+import { LayoutGrid, Users, Settings, Shield, User } from 'lucide-react';
 
 const AdminLayout = () => {
     const navItems = [
         { path: '/admin', label: 'Hospital Overview', icon: LayoutGrid, end: true },
         { path: '/admin/users', label: 'User Management', icon: Users },
-        { path: '/admin/records', label: 'Medical Records', icon: Database },
+
         { path: '/admin/security', label: 'Security & Audit', icon: Shield },
         { path: '/admin/settings', label: 'System Settings', icon: Settings },
+        { path: '/admin/profile', label: 'Profile', icon: User },
     ];
 
     return (
