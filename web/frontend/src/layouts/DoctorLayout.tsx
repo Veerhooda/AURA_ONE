@@ -14,7 +14,7 @@ const DoctorLayout = () => {
     ];
 
     return (
-        <div className="flex min-h-screen relative">
+        <div className="flex h-screen relative">
             <Sidebar items={navItems} />
             <div className="flex-1 overflow-x-hidden overflow-y-auto p-0 relative">
                  {/* Top ambient glow */}

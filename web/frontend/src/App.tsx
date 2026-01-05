@@ -14,6 +14,7 @@ import PatientSnapshot from './pages/nurse/PatientSnapshot';
 import AdminLayout from './layouts/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
+import SecurityAudit from './pages/admin/SecurityAudit';
 import FamilyLayout from './layouts/FamilyLayout';
 import FamilyDashboard from './pages/family/FamilyDashboard';
 
@@ -42,6 +43,7 @@ function App() {
           <Route path="/admin" element={<AdminLayout />}>
              <Route index element={<AdminDashboard />} />
              <Route path="users" element={<UserManagement />} />
+             <Route path="security" element={<SecurityAudit />} />
           </Route>
 
           <Route path="/family" element={<FamilyLayout />}>

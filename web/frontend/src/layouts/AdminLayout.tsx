@@ -13,7 +13,7 @@ const AdminLayout = () => {
     ];
 
     return (
-        <div className="flex bg-slate-950 min-h-screen">
+        <div className="flex bg-slate-950 h-screen">
             <Sidebar items={navItems} />
             <div className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-950 p-8 relative">
                 <div className="max-w-7xl mx-auto space-y-8">
