@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:ui' as ui;
 import 'dart:typed_data';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../services/api_service.dart';

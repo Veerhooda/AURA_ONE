@@ -76,7 +76,9 @@ class _HeartRateGraphState extends State<HeartRateGraph> with SingleTickerProvid
       });
     }
 
-    for (int i = 0; i < _maxPoints; i++) _points.add(0);
+    for (int i = 0; i < _maxPoints; i++) {
+      _points.add(0);
+    }
   }
 
   @override
@@ -170,15 +172,20 @@ class _OxygenGraphState extends State<OxygenGraph> with SingleTickerProviderStat
       });
     }
 
-    for (int i = 0; i < _maxPoints; i++) _points.add(0);
+    for (int i = 0; i < _maxPoints; i++) {
+      _points.add(0);
+    }
   }
 
   @override
   void didUpdateWidget(OxygenGraph oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isActive != oldWidget.isActive) {
-      if (widget.isActive) _controller.repeat();
-      else _controller.stop();
+      if (widget.isActive) {
+        _controller.repeat();
+      } else {
+        _controller.stop();
+      }
     }
   }
 
@@ -250,8 +257,11 @@ class _BloodPressureGraphState extends State<BloodPressureGraph> with SingleTick
   void didUpdateWidget(BloodPressureGraph oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isActive != oldWidget.isActive) {
-      if (widget.isActive) _controller.repeat();
-      else _controller.stop();
+      if (widget.isActive) {
+        _controller.repeat();
+      } else {
+        _controller.stop();
+      }
     }
   }
 
@@ -433,14 +443,15 @@ class _DualLineGraphPainter extends CustomPainter {
      for (int i = 0; i < points.length; i++) {
       double x = i * stepX;
       double y = midY - (points[i] * (size.height / range));
-      if (i == 0) path.moveTo(x, y);
-      else {
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
         // Simple smoothing
         double prevX = (i - 1) * stepX;
         double prevY = midY - (points[i-1] * (size.height / range));
         double midX = (prevX + x) / 2;
-        double midY_pt = (prevY + y) / 2;
-        path.quadraticBezierTo(prevX, prevY, midX, midY_pt);
+        double midyPt = (prevY + y) / 2;
+        path.quadraticBezierTo(prevX, prevY, midX, midyPt);
         // Correct way is control points, but this suffices for 'wavy' look
         path.lineTo(x, y); 
       }

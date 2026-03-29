@@ -2,9 +2,7 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/**
- * Finding #1: WebSocket Service with Auto-Reconnection and Re-Subscription
- */
+/// Finding #1: WebSocket Service with Auto-Reconnection and Re-Subscription
 class SocketService {
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
@@ -105,9 +103,7 @@ class SocketService {
     _chatSocket!.connect();
   }
 
-  /**
-   * Finding #1: Re-subscribe to all rooms after reconnection
-   */
+  /// Finding #1: Re-subscribe to all rooms after reconnection
   void _resubscribeAll() {
     print('🔄 Re-subscribing to ${_subscribedPatients.length} patients and ${_subscribedUsers.length} users');
     
@@ -122,9 +118,7 @@ class SocketService {
     }
   }
 
-  /**
-   * Finding #1: Re-subscribe to conversations
-   */
+  /// Finding #1: Re-subscribe to conversations
   void _resubscribeConversations() {
     for (final conversationId in _subscribedConversations) {
       _chatSocket?.emit('joinConversation', {'conversationId': conversationId});
@@ -132,9 +126,7 @@ class SocketService {
     }
   }
 
-  /**
-   * Finding #1: Subscribe to patient with tracking (idempotent)
-   */
+  /// Finding #1: Subscribe to patient with tracking (idempotent)
   void subscribeToPatient(int patientId) {
     _socket?.emit('subscribe.patient', {'patientId': patientId});
     _subscribedPatients.add(patientId);
@@ -144,27 +136,21 @@ class SocketService {
   // Alias for backward compatibility
   void subscribePatient(int patientId) => subscribeToPatient(patientId);
 
-  /**
-   * Finding #1: Unsubscribe from patient with tracking
-   */
+  /// Finding #1: Unsubscribe from patient with tracking
   void unsubscribeFromPatient(int patientId) {
     _socket?.emit('unsubscribe.patient', {'patientId': patientId});
     _subscribedPatients.remove(patientId);
     print('📡 Unsubscribed from patient $patientId');
   }
 
-  /**
-   * Finding #1: Subscribe to user with tracking
-   */
+  /// Finding #1: Subscribe to user with tracking
   void subscribeToUser(int userId) {
     _socket?.emit('subscribe.user', {'userId': userId});
     _subscribedUsers.add(userId);
     print('📡 Subscribed to user $userId');
   }
 
-  /**
-   * Finding #1: Join conversation with tracking
-   */
+  /// Finding #1: Join conversation with tracking
   void joinConversation(int conversationId) {
     _chatSocket?.emit('joinConversation', {'conversationId': conversationId});
     _subscribedConversations.add(conversationId);

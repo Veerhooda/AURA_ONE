@@ -6,20 +6,20 @@ export declare class ConsentService {
     grantConsent(patientId: number, guardianId: number, consentType: string, grantedBy: number): Promise<{
         id: number;
         patientId: number;
+        guardianId: number;
         consentType: string;
         grantedAt: Date;
         revokedAt: Date | null;
         grantedBy: number;
-        guardianId: number;
     }>;
     revokeConsent(patientId: number, guardianId: number, consentType: string): Promise<{
         id: number;
         patientId: number;
+        guardianId: number;
         consentType: string;
         grantedAt: Date;
         revokedAt: Date | null;
         grantedBy: number;
-        guardianId: number;
     }>;
     getPatientConsents(patientId: number): Promise<({
         guardian: {
@@ -30,11 +30,11 @@ export declare class ConsentService {
     } & {
         id: number;
         patientId: number;
+        guardianId: number;
         consentType: string;
         grantedAt: Date;
         revokedAt: Date | null;
         grantedBy: number;
-        guardianId: number;
     })[]>;
     getGuardianConsents(guardianId: number): Promise<({
         patient: {
@@ -47,10 +47,10 @@ export declare class ConsentService {
     } & {
         id: number;
         patientId: number;
+        guardianId: number;
         consentType: string;
         grantedAt: Date;
         revokedAt: Date | null;
         grantedBy: number;
-        guardianId: number;
     })[]>;
 }

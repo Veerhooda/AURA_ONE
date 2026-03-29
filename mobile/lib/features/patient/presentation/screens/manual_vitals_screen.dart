@@ -137,7 +137,7 @@ class _ManualVitalsScreenState extends State<ManualVitalsScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
-                      Text("Enter your current vital signs", style: const TextStyle(color: Colors.white54, fontSize: 14)),
+                      const Text("Enter your current vital signs", style: TextStyle(color: Colors.white54, fontSize: 14)),
                       const SizedBox(height: 24),
 
                       _buildVitalInput(

@@ -4,7 +4,7 @@ import 'package:aura_one/features/doctor/domain/models/doctor.dart';
 import 'package:aura_one/core/widgets/glassmorphic_container.dart';
 
 class DoctorProfileScreen extends StatefulWidget {
-  const DoctorProfileScreen({Key? key, required this.doctorId, this.apiService}) : super(key: key);
+  const DoctorProfileScreen({super.key, required this.doctorId, this.apiService});
 
   final int doctorId;
   final ApiService? apiService;

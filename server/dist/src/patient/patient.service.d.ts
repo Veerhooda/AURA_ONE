@@ -37,6 +37,8 @@ export declare class PatientService {
     private getLatestVital;
     createPatient(data: any): Promise<{
         id: number;
+        createdAt: Date;
+        updatedAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -53,22 +55,22 @@ export declare class PatientService {
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
         version: number;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     findAll(): Promise<({
         user: {
             id: number;
+            email: string;
+            blockchainId: string | null;
+            password: string;
+            name: string;
+            role: import(".prisma/client").$Enums.Role;
             createdAt: Date;
             updatedAt: Date;
-            name: string;
-            email: string;
-            password: string;
-            blockchainId: string | null;
-            role: import(".prisma/client").$Enums.Role;
         };
     } & {
         id: number;
+        createdAt: Date;
+        updatedAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -85,11 +87,11 @@ export declare class PatientService {
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
         version: number;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        updatedAt: Date;
     })[]>;
     reportPain(patientId: number, level: number): Promise<{
         id: number;
+        createdAt: Date;
+        updatedAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -106,11 +108,11 @@ export declare class PatientService {
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
         version: number;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     updateProfileByUserId(userId: number, data: any): Promise<{
         id: number;
+        createdAt: Date;
+        updatedAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -127,11 +129,11 @@ export declare class PatientService {
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
         version: number;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     updateStatus(id: number, status: string): Promise<{
         id: number;
+        createdAt: Date;
+        updatedAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -148,12 +150,12 @@ export declare class PatientService {
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
         version: number;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     addMedication(patientId: number, data: any): Promise<void>;
     addHistory(id: number, note: string): Promise<{
         id: number;
+        createdAt: Date;
+        updatedAt: Date;
         userId: number;
         mrn: string;
         dob: Date;
@@ -170,8 +172,6 @@ export declare class PatientService {
         latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
         version: number;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getPatientMedications(patientId: number): Promise<any[]>;
     getPatientHistory(patientId: number): Promise<{

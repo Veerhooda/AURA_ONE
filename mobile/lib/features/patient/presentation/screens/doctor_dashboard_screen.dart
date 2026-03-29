@@ -18,7 +18,7 @@ class DoctorDashboardScreen extends StatefulWidget {
 class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _patients = [];
-  Map<int, Map<String, dynamic>> _liveVitals = {};
+  final Map<int, Map<String, dynamic>> _liveVitals = {};
   bool _isLoading = true;
   StreamSubscription? _vitalsSub;
   late AnimationController _bgController;
@@ -185,8 +185,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> with Tick
               children: [
                 Text(count, style: title == "Critical" && int.parse(count) > 0 
                     ? TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color, shadows: [Shadow(color: color, blurRadius: 10)])
-                    : TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-                Text(title, style: TextStyle(fontSize: 12, color: Colors.white60)),
+                    : const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text(title, style: const TextStyle(fontSize: 12, color: Colors.white60)),
               ],
             )
           ],
@@ -246,7 +246,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> with Tick
       return const SliverFillRemaining(child: Center(child: CupertinoActivityIndicator(color: AppColors.primary)));
     }
     if (_patients.isEmpty) {
-      return SliverFillRemaining(
+      return const SliverFillRemaining(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -296,8 +296,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> with Tick
     required bool isCritical,
   }) {
     Color statusColor;
-    if (isCritical) statusColor = AppColors.error;
-    else if (status == 'Admitted') statusColor = AppColors.warning;
+    if (isCritical) {
+      statusColor = AppColors.error;
+    } else if (status == 'Admitted') statusColor = AppColors.warning;
     else statusColor = AppColors.success;
 
     return Padding(
@@ -420,7 +421,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> with Tick
                Shadow(color: color.withOpacity(0.5), blurRadius: 10)
             ])),
             const SizedBox(width: 4),
-            Text(subVal, style: TextStyle(color: Colors.white54, fontSize: 12)),
+            Text(subVal, style: const TextStyle(color: Colors.white54, fontSize: 12)),
           ],
         ),
         const SizedBox(height: 4),
@@ -428,7 +429,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> with Tick
           children: [
             Icon(icon, size: 10, color: color),
             const SizedBox(width: 4),
-            Text(label, style: TextStyle(color: Colors.white38, fontSize: 11)),
+            Text(label, style: const TextStyle(color: Colors.white38, fontSize: 11)),
           ],
         )
       ],

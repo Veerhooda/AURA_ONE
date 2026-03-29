@@ -439,11 +439,11 @@ class _CreatePatientDialogState extends State<CreatePatientDialog> with SingleTi
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.surfaceHighlight),
+          borderSide: const BorderSide(color: AppColors.surfaceHighlight),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.surfaceHighlight),
+          borderSide: const BorderSide(color: AppColors.surfaceHighlight),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

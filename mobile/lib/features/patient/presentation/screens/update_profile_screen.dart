@@ -114,7 +114,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
               const SizedBox(height: 24),
 
               DropdownButtonFormField<String>(
-                value: _selectedStatus,
+                initialValue: _selectedStatus,
                 isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Current Status',

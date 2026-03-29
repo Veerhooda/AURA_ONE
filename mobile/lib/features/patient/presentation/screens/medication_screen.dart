@@ -180,7 +180,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
           }
           
           if (snapshot.hasError) {
-            return Center(child: Text("Error loading meds", style: TextStyle(color: AppColors.error)));
+            return const Center(child: Text("Error loading meds", style: TextStyle(color: AppColors.error)));
           }
 
           final meds = snapshot.data ?? [];

@@ -132,7 +132,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with TickerPr
                           height: 100,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: LinearGradient(
+                            gradient: const LinearGradient(
                               colors: [AppColors.primary, AppColors.primaryLight],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -234,7 +234,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with TickerPr
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.shield_outlined, size: 14, color: Colors.white30),
+                        const Icon(Icons.shield_outlined, size: 14, color: Colors.white30),
                         const SizedBox(width: 8),
                         Text(
                           'Secure  •  HIPAA Compliant  •  AI Powered',
@@ -351,7 +351,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with TickerPr
                       ],
                     ),
                   ),
-                  Icon(CupertinoIcons.chevron_right, color: Colors.white30, size: 20),
+                  const Icon(CupertinoIcons.chevron_right, color: Colors.white30, size: 20),
                 ],
               ),
             ),

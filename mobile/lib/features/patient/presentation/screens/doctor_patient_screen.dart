@@ -84,7 +84,7 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with TickerPr
       await ApiService().updatePatientStatus(widget.patientId, newStatus);
       setState(() => _patientData!['status'] = newStatus);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to update status")));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to update status")));
     }
   }
 
@@ -176,10 +176,10 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with TickerPr
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Scaffold(
-        backgroundColor: const Color(0xFF0F172A),
-        appBar: const AuraAppBar(title: "Loading...", backgroundColor: Colors.transparent),
-        body: const Center(child: CupertinoActivityIndicator(color: AppColors.primary)),
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F172A),
+        appBar: AuraAppBar(title: "Loading...", backgroundColor: Colors.transparent),
+        body: Center(child: CupertinoActivityIndicator(color: AppColors.primary)),
       );
     }
 
@@ -337,11 +337,11 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with TickerPr
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppColors.accent.withOpacity(0.3)),
           ),
-          child: Row(
+          child: const Row(
             children: [
-              const Icon(CupertinoIcons.sparkles, color: AppColors.accent),
-              const SizedBox(width: 12),
-              const Expanded(child: Text("AI Insight: Patient recovering well. Vitals stable for 4h.", style: TextStyle(color: Colors.white70))),
+              Icon(CupertinoIcons.sparkles, color: AppColors.accent),
+              SizedBox(width: 12),
+              Expanded(child: Text("AI Insight: Patient recovering well. Vitals stable for 4h.", style: TextStyle(color: Colors.white70))),
             ],
           ),
         ),
@@ -421,7 +421,7 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with TickerPr
               ])
             ],
           ),
-        )).toList(),
+        )),
         
         Padding(
           padding: const EdgeInsets.only(top: 20),
@@ -449,7 +449,7 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with TickerPr
               children: [
                 Column(
                   children: [
-                    Container(width: 12, height: 12, decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle, boxShadow: [BoxShadow(color: AppColors.accent, blurRadius: 10)])),
+                    Container(width: 12, height: 12, decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle, boxShadow: [BoxShadow(color: AppColors.accent, blurRadius: 10)])),
                     Container(width: 2, height: 50, color: Colors.white.withOpacity(0.1))
                   ],
                 ),
@@ -470,7 +470,7 @@ class _DoctorPatientScreenState extends State<DoctorPatientScreen> with TickerPr
                 )
               ],
             ),
-          )).toList(),
+          )),
            Padding(
             padding: const EdgeInsets.only(top: 20),
             child: SizedBox(

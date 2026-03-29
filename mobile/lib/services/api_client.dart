@@ -2,17 +2,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/**
- * Finding #2: HTTP Interceptor for Automatic Token Refresh
- * Intercepts 401 responses, refreshes token, retries original request
- */
+/// Finding #2: HTTP Interceptor for Automatic Token Refresh
+/// Intercepts 401 responses, refreshes token, retries original request
 class ApiClient {
   final http.Client _client = http.Client();
   final _storage = const FlutterSecureStorage();
   
   // Finding #2: Mutex to prevent parallel refresh storms
   bool _isRefreshing = false;
-  List<Function> _refreshQueue = [];
+  final List<Function> _refreshQueue = [];
 
   Future<http.Response> get(String url, {Map<String, String>? headers}) async {
     return _requestWithRetry(() => _client.get(Uri.parse(url), headers: headers));
@@ -34,9 +32,7 @@ class ApiClient {
     ));
   }
 
-  /**
-   * Finding #2: Request with automatic retry on 401
-   */
+  /// Finding #2: Request with automatic retry on 401
   Future<http.Response> _requestWithRetry(Future<http.Response> Function() request) async {
     final response = await request();
 
@@ -58,10 +54,8 @@ class ApiClient {
     return response;
   }
 
-  /**
-   * Finding #2: Refresh access token
-   * Returns true if successful, false if refresh token expired
-   */
+  /// Finding #2: Refresh access token
+  /// Returns true if successful, false if refresh token expired
   Future<bool> _refreshToken() async {
     // Finding #2: Mutex - prevent parallel refresh
     if (_isRefreshing) {
@@ -111,9 +105,7 @@ class ApiClient {
     }
   }
 
-  /**
-   * Finding #2: Hard logout on refresh failure
-   */
+  /// Finding #2: Hard logout on refresh failure
   Future<void> _handleLogout() async {
     await _storage.deleteAll();
     // TODO: Navigate to login screen
@@ -121,6 +113,6 @@ class ApiClient {
 
   Future<String> _getBaseUrl() async {
     // Get from environment or config
-    return 'http://localhost:3001';
+    return 'http://10.0.2.2:3001';
   }
 }

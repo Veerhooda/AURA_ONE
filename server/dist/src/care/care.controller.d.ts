@@ -18,30 +18,30 @@ export declare class CareController {
     getTasks(ward: string): Promise<any[]>;
     createTask(req: any, body: CreateTaskDto): Promise<{
         id: number;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import(".prisma/client").$Enums.TaskStatus;
         patientId: number;
         title: string;
         description: string | null;
         priority: import(".prisma/client").$Enums.TaskPriority;
-        status: import(".prisma/client").$Enums.TaskStatus;
         dueTime: Date | null;
         completedAt: Date | null;
         completedBy: string | null;
         notes: string | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     updateTask(id: string, body: UpdateTaskStatusDto): Promise<{
         id: number;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import(".prisma/client").$Enums.TaskStatus;
         patientId: number;
         title: string;
         description: string | null;
         priority: import(".prisma/client").$Enums.TaskPriority;
-        status: import(".prisma/client").$Enums.TaskStatus;
         dueTime: Date | null;
         completedAt: Date | null;
         completedBy: string | null;
         notes: string | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
 }

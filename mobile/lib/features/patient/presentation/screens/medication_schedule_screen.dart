@@ -16,8 +16,8 @@ class MedicationScheduleScreen extends StatefulWidget {
 
 class _MedicationScheduleScreenState extends State<MedicationScheduleScreen> {
   List<Map<String, dynamic>> _medications = [];
-  Map<int, TimeOfDay?> _scheduledTimes = {};
-  Map<int, bool> _remindersEnabled = {};
+  final Map<int, TimeOfDay?> _scheduledTimes = {};
+  final Map<int, bool> _remindersEnabled = {};
   bool _isLoading = true;
 
   @override
@@ -65,9 +65,9 @@ class _MedicationScheduleScreenState extends State<MedicationScheduleScreen> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
-            colorScheme: ColorScheme.dark(
+            colorScheme: const ColorScheme.dark(
               primary: AppColors.primary,
-              surface: const Color(0xFF1E293B),
+              surface: Color(0xFF1E293B),
             ),
           ),
           child: child!,
@@ -179,7 +179,7 @@ class _MedicationScheduleScreenState extends State<MedicationScheduleScreen> {
                   child: _isLoading
                       ? const Center(child: CupertinoActivityIndicator(color: AppColors.primary))
                       : _medications.isEmpty
-                          ? Center(child: Text("No medications prescribed", style: TextStyle(color: Colors.white38)))
+                          ? const Center(child: Text("No medications prescribed", style: TextStyle(color: Colors.white38)))
                           : ListView.builder(
                               padding: const EdgeInsets.all(20),
                               itemCount: _medications.length,
@@ -252,7 +252,7 @@ class _MedicationScheduleScreenState extends State<MedicationScheduleScreen> {
                   children: [
                     const Icon(CupertinoIcons.clock, color: Colors.white54, size: 20),
                     const SizedBox(width: 8),
-                    Text("Schedule:", style: TextStyle(color: Colors.white70)),
+                    const Text("Schedule:", style: TextStyle(color: Colors.white70)),
                     const Spacer(),
                     GestureDetector(
                       onTap: () => _setReminderTime(medId, name, dosage),
@@ -279,11 +279,11 @@ class _MedicationScheduleScreenState extends State<MedicationScheduleScreen> {
                   children: [
                     const Icon(CupertinoIcons.bell_fill, color: Colors.white54, size: 20),
                     const SizedBox(width: 8),
-                    Text("Daily Reminder:", style: TextStyle(color: Colors.white70)),
+                    const Text("Daily Reminder:", style: TextStyle(color: Colors.white70)),
                     const Spacer(),
                     CupertinoSwitch(
                       value: reminderEnabled,
-                      activeColor: AppColors.primary,
+                      activeTrackColor: AppColors.primary,
                       onChanged: scheduledTime != null 
                           ? (val) => _toggleReminder(medId, name, dosage)
                           : null,

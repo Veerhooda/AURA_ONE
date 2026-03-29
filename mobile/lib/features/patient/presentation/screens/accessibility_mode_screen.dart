@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/aura_app_bar.dart';
-import '../../../../core/widgets/aura_fab.dart';
 
 class AccessibilityModeScreen extends StatefulWidget {
   const AccessibilityModeScreen({super.key});

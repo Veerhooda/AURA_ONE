@@ -9,14 +9,14 @@ class GlassmorphicContainer extends StatelessWidget {
   final Widget child;
 
   const GlassmorphicContainer({
-    Key? key,
+    super.key,
     required this.width,
     required this.height,
     required this.borderRadius,
     required this.blur,
     required this.alignment,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

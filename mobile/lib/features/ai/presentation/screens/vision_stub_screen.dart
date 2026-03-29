@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../services/api_service.dart';
 
 class VisionStubScreen extends StatefulWidget {
   final String mode; // 'medication' or 'pain'

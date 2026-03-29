@@ -155,7 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: LinearGradient(
+                          gradient: const LinearGradient(
                             colors: [AppColors.primary, AppColors.accent],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight

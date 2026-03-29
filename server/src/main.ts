@@ -78,3 +78,4 @@ async function bootstrap() {
   console.log(`🔒 CORS origins: ${allowedOrigins.join(', ') || 'All (development mode)'}`);
 }
 bootstrap();
+

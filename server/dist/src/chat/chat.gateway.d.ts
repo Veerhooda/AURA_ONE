@@ -25,11 +25,11 @@ export declare class ChatGateway implements OnGatewayConnection, OnGatewayDiscon
     }): Promise<{
         id: number;
         createdAt: Date;
+        linkedVitalsId: number | null;
+        type: string;
         senderId: number;
         senderType: string;
         content: string;
-        type: string;
-        linkedVitalsId: number | null;
         sequence: number;
         idempotencyKey: string | null;
         conversationId: number;

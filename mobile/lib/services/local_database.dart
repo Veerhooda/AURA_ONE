@@ -2,10 +2,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
 
-/**
- * C18: Local Database Service for Offline Persistence
- * Caches critical data for offline access
- */
+/// C18: Local Database Service for Offline Persistence
+/// Caches critical data for offline access
 class LocalDatabase {
   static final LocalDatabase _instance = LocalDatabase._internal();
   factory LocalDatabase() => _instance;

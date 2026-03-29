@@ -109,7 +109,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           const SizedBox(width: 8),
                           Container(
                             width: 40, height: 40,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: LinearGradient(colors: [AppColors.primary, AppColors.accent]),
                             ),
@@ -121,7 +121,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(widget.recipientName, style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-                                Text("Online", style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                                const Text("Online", style: TextStyle(color: Colors.white54, fontSize: 12)),
                               ],
                             ),
                           ),
@@ -136,7 +136,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: _isLoading
                       ? const Center(child: CupertinoActivityIndicator(color: AppColors.primary))
                       : _messages.isEmpty
-                          ? Center(
+                          ? const Center(
                               child: Text("No messages yet. Start the conversation!", 
                                   style: TextStyle(color: Colors.white38)),
                             )

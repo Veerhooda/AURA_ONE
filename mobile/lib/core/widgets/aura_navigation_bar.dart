@@ -138,8 +138,8 @@ class _SmoothNotchClipper extends CustomClipper<Path> {
     final path = Path();
     final double center = size.width / 2;
     // Notch dimensions
-    final double topRadius = 45.0; // Width of opening
-    final double bottomRadius = 25.0; // Depth/Shape of curve
+    const double topRadius = 45.0; // Width of opening
+    const double bottomRadius = 25.0; // Depth/Shape of curve
 
     path.moveTo(0, 0);
     
@@ -192,8 +192,8 @@ class _GlassBevelPainter extends CustomPainter {
 
     final path = Path();
     final double center = size.width / 2;
-    final double topRadius = 45.0;
-    final double bottomRadius = 25.0;
+    const double topRadius = 45.0;
+    const double bottomRadius = 25.0;
 
     path.moveTo(0, 0);
     path.lineTo(center - topRadius - 10, 0);

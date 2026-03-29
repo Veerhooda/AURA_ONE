@@ -28,7 +28,7 @@ class ChatThreadScreen extends StatefulWidget {
 class _ChatThreadScreenState extends State<ChatThreadScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  List<dynamic> _messages = [];
+  final List<dynamic> _messages = [];
   bool _isLoading = true;
   int? _currentUserId; // To check "isMine"
 
@@ -216,10 +216,10 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               children: [
                 Icon(CupertinoIcons.heart_fill, color: AppColors.error, size: 16),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text("Vitals Snapshot", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
               ],
             ),
@@ -228,12 +228,12 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text("HEART RATE", style: TextStyle(color: Colors.white54, fontSize: 10)),
-                    Text("$hr bpm", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    const Text("HEART RATE", style: TextStyle(color: Colors.white54, fontSize: 10)),
+                    Text("$hr bpm", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                 ]),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text("SpO2", style: TextStyle(color: Colors.white54, fontSize: 10)),
-                    Text(spo2, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    const Text("SpO2", style: TextStyle(color: Colors.white54, fontSize: 10)),
+                    Text(spo2, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                 ]),
               ],
             )

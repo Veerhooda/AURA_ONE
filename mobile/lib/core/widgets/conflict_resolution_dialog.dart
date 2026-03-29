@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 
-/**
- * Finding #7: Conflict Resolution Dialog
- * Shows when offline edit conflicts with server data
- */
+/// Finding #7: Conflict Resolution Dialog
+/// Shows when offline edit conflicts with server data
 class ConflictResolutionDialog extends StatefulWidget {
   final Map<String, dynamic> yourData;
   final Map<String, dynamic> serverData;
   final Function(Map<String, dynamic>) onResolve;
 
   const ConflictResolutionDialog({
-    Key? key,
+    super.key,
     required this.yourData,
     required this.serverData,
     required this.onResolve,
-  }) : super(key: key);
+  });
 
   @override
   State<ConflictResolutionDialog> createState() => _ConflictResolutionDialogState();

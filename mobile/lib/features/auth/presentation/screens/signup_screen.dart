@@ -80,7 +80,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       appBar: AppBar(
         title: const Text("Create Account"),
         backgroundColor: Colors.transparent,
-        leading: BackButton(color: AppColors.textPrimary),
+        leading: const BackButton(color: AppColors.textPrimary),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -137,7 +137,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               
               // Role Selection
               DropdownButtonFormField<String>(
-                value: _selectedRole,
+                initialValue: _selectedRole,
                 decoration: const InputDecoration(
                   labelText: 'I am a...',
                   prefixIcon: Icon(Icons.badge_outlined),
@@ -168,7 +168,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: _selectedStatus,
+                        initialValue: _selectedStatus,
                         isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: 'Status',

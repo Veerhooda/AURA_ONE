@@ -43,7 +43,7 @@ class MonitorScreen extends StatefulWidget {
 class _MonitorScreenState extends State<MonitorScreen> {
   final _simulationService = SimulationService();
   final _socketService = SocketService();
-  final _ipController = TextEditingController(text: '172.20.10.2');
+  final _ipController = TextEditingController(text: '192.168.125.69');
   final _emailController = TextEditingController();
   
   StreamSubscription? _subscription;

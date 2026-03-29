@@ -147,7 +147,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                             builder: (context, child) {
                               return Theme(
                                 data: ThemeData.dark().copyWith(
-                                  colorScheme: ColorScheme.dark(primary: AppColors.primary),
+                                  colorScheme: const ColorScheme.dark(primary: AppColors.primary),
                                 ),
                                 child: child!,
                               );

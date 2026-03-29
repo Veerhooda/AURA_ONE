@@ -114,7 +114,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen>
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-            child: Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -136,11 +136,11 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Row(
+              content: const Row(
                 children: [
-                  const Icon(CupertinoIcons.checkmark_circle, color: Colors.white, size: 20),
-                  const SizedBox(width: 12),
-                  const Text('Patient removed successfully'),
+                  Icon(CupertinoIcons.checkmark_circle, color: Colors.white, size: 20),
+                  SizedBox(width: 12),
+                  Text('Patient removed successfully'),
                 ],
               ),
               backgroundColor: AppColors.success,

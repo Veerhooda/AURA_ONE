@@ -113,7 +113,7 @@ class _ChatScreenState extends State<ChatScreen> {
              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
              decoration: BoxDecoration(
                color: AppColors.surface.withOpacity(0.95), // Glassy background
-               border: Border(top: BorderSide(color: AppColors.surfaceHighlight)),
+               border: const Border(top: BorderSide(color: AppColors.surfaceHighlight)),
                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 20, offset: const Offset(0, -5))]
              ),
              child: Row(
@@ -124,12 +124,12 @@ class _ChatScreenState extends State<ChatScreen> {
                      style: AppTypography.bodyMedium,
                      decoration: InputDecoration(
                        hintText: "Ask about your health...",
-                       hintStyle: TextStyle(color: AppColors.textSecondary),
+                       hintStyle: const TextStyle(color: AppColors.textSecondary),
                        filled: true,
                        fillColor: Colors.black.withOpacity(0.3),
                        border: OutlineInputBorder(
                          borderRadius: BorderRadius.circular(24),
-                         borderSide: BorderSide(color: AppColors.surfaceHighlight)
+                         borderSide: const BorderSide(color: AppColors.surfaceHighlight)
                        ),
                        focusedBorder: OutlineInputBorder(
                          borderRadius: BorderRadius.circular(24),

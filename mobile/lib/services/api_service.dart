@@ -12,9 +12,9 @@ class ApiService {
   static String get baseUrl {
     // C3 fix: Use environment variable instead of hardcoded IP
     // Build with: flutter build --dart-define=API_URL=https://api.aura.com
-    const String? apiUrl = String.fromEnvironment('API_URL');
+    const String apiUrl = String.fromEnvironment('API_URL');
     
-    if (apiUrl != null && apiUrl.isNotEmpty) {
+    if (apiUrl.isNotEmpty) {
       // C5 fix: Validate HTTPS in production
       if (!apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
         throw Exception('API_URL must start with http:// or https://');
@@ -26,7 +26,7 @@ class ApiService {
     if (kDebugMode) {
       print('⚠️  WARNING: Using development API URL. Set API_URL for production builds.');
       // Use 10.0.2.2 for Android Emulator, or your machine's IP for iOS/Physical devices
-      return 'http://172.20.10.2:3001';
+      return 'http://10.0.2.2:3001';
     }
     
     throw Exception(

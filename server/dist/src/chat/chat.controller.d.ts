@@ -10,23 +10,23 @@ export declare class ChatController {
         messages: {
             id: number;
             createdAt: Date;
-            conversationId: number;
+            linkedVitalsId: number | null;
+            type: string;
             senderId: number;
             senderType: string;
             content: string;
-            type: string;
-            linkedVitalsId: number | null;
             sequence: number;
             idempotencyKey: string | null;
+            conversationId: number;
         }[];
         patient: {
             user: {
-                email: string;
-                role: import(".prisma/client").$Enums.Role;
-                name: string;
                 id: number;
-                password: string;
+                email: string;
                 blockchainId: string | null;
+                password: string;
+                name: string;
+                role: import(".prisma/client").$Enums.Role;
                 createdAt: Date;
                 updatedAt: Date;
             };
@@ -52,17 +52,17 @@ export declare class ChatController {
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
         };
         doctor: {
+            id: number;
             email: string;
             name: string;
-            id: number;
             createdAt: Date;
             userId: number | null;
             specialty: string;
         };
-        doctorId: number;
         id: number;
         createdAt: Date;
         patientId: number;
+        doctorId: number;
         lastMessageAt: Date;
     }>;
     getDoctorInbox(req: any): Promise<({
@@ -92,40 +92,40 @@ export declare class ChatController {
             version: number;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
         };
-        _count: {
-            messages: number;
-        };
         doctor: {
+            id: number;
             email: string;
             name: string;
-            id: number;
             createdAt: Date;
             userId: number | null;
             specialty: string;
         };
+        _count: {
+            messages: number;
+        };
         messages: {
             id: number;
             createdAt: Date;
+            type: string;
             senderType: string;
             content: string;
-            type: string;
         }[];
     } & {
-        doctorId: number;
         id: number;
         createdAt: Date;
         patientId: number;
+        doctorId: number;
         lastMessageAt: Date;
     })[]>;
     getPatientInbox(patientId: string): Promise<({
         patient: {
             user: {
-                email: string;
-                role: import(".prisma/client").$Enums.Role;
-                name: string;
                 id: number;
-                password: string;
+                email: string;
                 blockchainId: string | null;
+                password: string;
+                name: string;
+                role: import(".prisma/client").$Enums.Role;
                 createdAt: Date;
                 updatedAt: Date;
             };
@@ -151,43 +151,43 @@ export declare class ChatController {
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
         };
         doctor: {
+            id: number;
             email: string;
             name: string;
-            id: number;
             createdAt: Date;
             userId: number | null;
             specialty: string;
         };
     } & {
-        doctorId: number;
         id: number;
         createdAt: Date;
         patientId: number;
+        doctorId: number;
         lastMessageAt: Date;
     })[]>;
     getHistory(conversationId: string): Promise<{
         id: number;
         createdAt: Date;
-        conversationId: number;
+        linkedVitalsId: number | null;
+        type: string;
         senderId: number;
         senderType: string;
         content: string;
-        type: string;
-        linkedVitalsId: number | null;
         sequence: number;
         idempotencyKey: string | null;
+        conversationId: number;
     }[]>;
     getConversationMessages(id: string): Promise<{
         id: number;
         createdAt: Date;
-        conversationId: number;
+        linkedVitalsId: number | null;
+        type: string;
         senderId: number;
         senderType: string;
         content: string;
-        type: string;
-        linkedVitalsId: number | null;
         sequence: number;
         idempotencyKey: string | null;
+        conversationId: number;
     }[]>;
 }
 export {};

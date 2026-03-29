@@ -39,8 +39,8 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
       
       if (mounted) {
         setState(() {
-          _history = (results[0] as List).cast<Map<String, dynamic>>();
-          _reports = (results[1] as List).cast<Map<String, dynamic>>();
+          _history = (results[0]).cast<Map<String, dynamic>>();
+          _reports = (results[1]).cast<Map<String, dynamic>>();
           _isLoading = false;
         });
       }
@@ -75,7 +75,7 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
             SafeArea(
               child: Column(
                 children: [
-                  AuraAppBar(
+                  const AuraAppBar(
                     title: "Medical Records", 
                     showBack: true, 
                     backgroundColor: Colors.transparent,

@@ -218,7 +218,7 @@ class _DigitalGridPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
-    final double gridSize = 40.0;
+    const double gridSize = 40.0;
     
     // Vertical Lines
     for (double x = 0; x < size.width; x += gridSize) {

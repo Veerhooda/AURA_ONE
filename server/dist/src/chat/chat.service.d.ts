@@ -6,17 +6,18 @@ export declare class ChatService {
         patient: {
             user: {
                 id: number;
-                createdAt: Date;
-                name: string;
-                updatedAt: Date;
                 email: string;
-                password: string;
                 blockchainId: string | null;
+                password: string;
+                name: string;
                 role: import(".prisma/client").$Enums.Role;
+                createdAt: Date;
+                updatedAt: Date;
             };
         } & {
             id: number;
             createdAt: Date;
+            updatedAt: Date;
             userId: number;
             mrn: string;
             dob: Date;
@@ -33,31 +34,30 @@ export declare class ChatService {
             latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
             version: number;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            updatedAt: Date;
         };
         doctor: {
             id: number;
-            createdAt: Date;
-            name: string;
-            userId: number | null;
             email: string;
+            name: string;
+            createdAt: Date;
+            userId: number | null;
             specialty: string;
         };
     } & {
         id: number;
+        createdAt: Date;
         patientId: number;
         doctorId: number;
         lastMessageAt: Date;
-        createdAt: Date;
     }>;
     sendMessage(senderId: number, conversationId: number, content: string, type?: string, attachmentUrl?: string, linkedVitalsId?: number): Promise<{
         id: number;
         createdAt: Date;
+        linkedVitalsId: number | null;
+        type: string;
         senderId: number;
         senderType: string;
         content: string;
-        type: string;
-        linkedVitalsId: number | null;
         sequence: number;
         idempotencyKey: string | null;
         conversationId: number;
@@ -65,11 +65,11 @@ export declare class ChatService {
     getMessages(conversationId: number): Promise<{
         id: number;
         createdAt: Date;
+        linkedVitalsId: number | null;
+        type: string;
         senderId: number;
         senderType: string;
         content: string;
-        type: string;
-        linkedVitalsId: number | null;
         sequence: number;
         idempotencyKey: string | null;
         conversationId: number;
@@ -77,11 +77,11 @@ export declare class ChatService {
     getConversationMessages(conversationId: number, limit?: number): Promise<{
         id: number;
         createdAt: Date;
+        linkedVitalsId: number | null;
+        type: string;
         senderId: number;
         senderType: string;
         content: string;
-        type: string;
-        linkedVitalsId: number | null;
         sequence: number;
         idempotencyKey: string | null;
         conversationId: number;
@@ -89,12 +89,13 @@ export declare class ChatService {
     getDoctorInbox(doctorId: number): Promise<({
         patient: {
             user: {
-                name: string;
                 email: string;
+                name: string;
             };
         } & {
             id: number;
             createdAt: Date;
+            updatedAt: Date;
             userId: number;
             mrn: string;
             dob: Date;
@@ -111,48 +112,48 @@ export declare class ChatService {
             latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
             version: number;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            updatedAt: Date;
         };
         doctor: {
             id: number;
-            createdAt: Date;
-            name: string;
-            userId: number | null;
             email: string;
+            name: string;
+            createdAt: Date;
+            userId: number | null;
             specialty: string;
+        };
+        _count: {
+            messages: number;
         };
         messages: {
             id: number;
             createdAt: Date;
+            type: string;
             senderType: string;
             content: string;
-            type: string;
         }[];
-        _count: {
-            messages: number;
-        };
     } & {
         id: number;
+        createdAt: Date;
         patientId: number;
         doctorId: number;
         lastMessageAt: Date;
-        createdAt: Date;
     })[]>;
     getPatientConversations(patientId: number): Promise<({
         patient: {
             user: {
                 id: number;
-                createdAt: Date;
-                name: string;
-                updatedAt: Date;
                 email: string;
-                password: string;
                 blockchainId: string | null;
+                password: string;
+                name: string;
                 role: import(".prisma/client").$Enums.Role;
+                createdAt: Date;
+                updatedAt: Date;
             };
         } & {
             id: number;
             createdAt: Date;
+            updatedAt: Date;
             userId: number;
             mrn: string;
             dob: Date;
@@ -169,22 +170,21 @@ export declare class ChatService {
             latestVitals: import("@prisma/client/runtime/library").JsonValue | null;
             version: number;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            updatedAt: Date;
         };
         doctor: {
             id: number;
-            createdAt: Date;
-            name: string;
-            userId: number | null;
             email: string;
+            name: string;
+            createdAt: Date;
+            userId: number | null;
             specialty: string;
         };
     } & {
         id: number;
+        createdAt: Date;
         patientId: number;
         doctorId: number;
         lastMessageAt: Date;
-        createdAt: Date;
     })[]>;
     private _previewContent;
 }

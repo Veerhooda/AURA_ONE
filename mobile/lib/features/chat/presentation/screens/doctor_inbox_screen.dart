@@ -98,7 +98,7 @@ class _DoctorInboxScreenState extends State<DoctorInboxScreen> {
       
       // Truncate if too long
       if (lastMsg.length > 50) {
-        lastMsg = lastMsg.substring(0, 50) + '...';
+        lastMsg = '${lastMsg.substring(0, 50)}...';
       }
     }
     
@@ -138,7 +138,7 @@ class _DoctorInboxScreenState extends State<DoctorInboxScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(timeStr, style: TextStyle(color: Colors.white30, fontSize: 12)),
+          Text(timeStr, style: const TextStyle(color: Colors.white30, fontSize: 12)),
           const SizedBox(height: 4),
           // const Icon(CupertinoIcons.chevron_right, color: Colors.white10, size: 16),
         ],

@@ -51,8 +51,8 @@ export declare class AppointmentsController {
         patientId: number;
         doctorId: number;
         notes: string | null;
-        type: string;
         dateTime: Date;
+        type: string;
     }>;
     getPatientAppointments(patientId: number): Promise<({
         doctor: {
@@ -71,8 +71,8 @@ export declare class AppointmentsController {
         patientId: number;
         doctorId: number;
         notes: string | null;
-        type: string;
         dateTime: Date;
+        type: string;
     })[]>;
     getAllDoctors(): Promise<{
         id: number;
@@ -93,8 +93,8 @@ export declare class AppointmentsController {
         patientId: number;
         doctorId: number;
         notes: string | null;
-        type: string;
         dateTime: Date;
+        type: string;
     }>;
     cancelAppointment(id: number): Promise<{
         id: number;
@@ -104,7 +104,7 @@ export declare class AppointmentsController {
         patientId: number;
         doctorId: number;
         notes: string | null;
-        type: string;
         dateTime: Date;
+        type: string;
     }>;
 }

@@ -45,8 +45,8 @@ export declare class AppointmentsService {
         patientId: number;
         doctorId: number;
         notes: string | null;
-        type: string;
         dateTime: Date;
+        type: string;
     }>;
     getPatientAppointments(patientId: number): Promise<({
         doctor: {
@@ -65,8 +65,8 @@ export declare class AppointmentsService {
         patientId: number;
         doctorId: number;
         notes: string | null;
-        type: string;
         dateTime: Date;
+        type: string;
     })[]>;
     getAllDoctors(): Promise<{
         id: number;
@@ -84,8 +84,8 @@ export declare class AppointmentsService {
         patientId: number;
         doctorId: number;
         notes: string | null;
-        type: string;
         dateTime: Date;
+        type: string;
     }>;
     cancelAppointment(id: number): Promise<{
         id: number;
@@ -95,8 +95,8 @@ export declare class AppointmentsService {
         patientId: number;
         doctorId: number;
         notes: string | null;
-        type: string;
         dateTime: Date;
+        type: string;
     }>;
     getAvailableSlots(doctorId: number, date: Date): any[];
 }

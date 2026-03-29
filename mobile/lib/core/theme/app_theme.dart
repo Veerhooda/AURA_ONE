@@ -12,7 +12,7 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.background,
       
       // Color Scheme
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
         secondary: AppColors.accent,
         surface: AppColors.surface,
@@ -38,7 +38,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: AppColors.surfaceHighlight, width: 1),
+          side: const BorderSide(color: AppColors.surfaceHighlight, width: 1),
         ),
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       ),
@@ -49,7 +49,7 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: AppTypography.titleLarge,
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
+        iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
 
       // Floating Action Button Theme
@@ -70,11 +70,11 @@ class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.surfaceHighlight),
+          borderSide: const BorderSide(color: AppColors.surfaceHighlight),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.primary),
+          borderSide: const BorderSide(color: AppColors.primary),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         hintStyle: AppTypography.bodyMedium.copyWith(color: AppColors.textHint),

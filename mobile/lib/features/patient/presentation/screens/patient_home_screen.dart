@@ -202,7 +202,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
         final meds = (data['medications'] as List?) ?? [];
         final medsTotal = meds.length;
         // Since backend doesn't track specific daily adherence yet, we show 0 or handle it
-        final medsTaken = 0; 
+        const medsTaken = 0; 
 
         // Vitals Logic
         // Vitals Logic - Safely handle String or num
@@ -212,12 +212,14 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
 
         try {
           final hrVal = data['current_state']?['heart_rate'];
-          if (hrVal is num) hr = hrVal.toInt();
-          else if (hrVal is String) hr = int.tryParse(hrVal) ?? 0;
+          if (hrVal is num) {
+            hr = hrVal.toInt();
+          } else if (hrVal is String) hr = int.tryParse(hrVal) ?? 0;
 
           final spo2Val = data['current_state']?['spo2'];
-          if (spo2Val is num) spo2 = spo2Val.toInt();
-          else if (spo2Val is String) spo2 = int.tryParse(spo2Val) ?? 0;
+          if (spo2Val is num) {
+            spo2 = spo2Val.toInt();
+          } else if (spo2Val is String) spo2 = int.tryParse(spo2Val) ?? 0;
           
           bp = data['current_state']?['blood_pressure']?.toString() ?? "--/--";
         } catch (e) {
@@ -247,7 +249,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
                     children: [
                       Text(_greeting, style: AppTypography.headlineMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
                       if (_mrn.isNotEmpty)
-                        Text("ID: $_mrn", style: TextStyle(color: Colors.white54, fontSize: 10)),
+                        Text("ID: $_mrn", style: const TextStyle(color: Colors.white54, fontSize: 10)),
                     ],
                   ),
                   background: Container(color: Colors.black.withOpacity(0.6)),
@@ -296,12 +298,14 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> with TickerProvid
                           
                           if (live != null) {
                             final hrVal = live['hr'];
-                            if (hrVal is num) currentHr = hrVal.toInt();
-                            else if (hrVal is String) currentHr = int.tryParse(hrVal) ?? hr;
+                            if (hrVal is num) {
+                              currentHr = hrVal.toInt();
+                            } else if (hrVal is String) currentHr = int.tryParse(hrVal) ?? hr;
                             
                             final spo2Val = live['spo2'];
-                            if (spo2Val is num) currentSpo2 = spo2Val.toInt();
-                            else if (spo2Val is String) currentSpo2 = int.tryParse(spo2Val) ?? spo2;
+                            if (spo2Val is num) {
+                              currentSpo2 = spo2Val.toInt();
+                            } else if (spo2Val is String) currentSpo2 = int.tryParse(spo2Val) ?? spo2;
                             
                             currentBp = live['bp']?.toString() ?? bp;
                           }

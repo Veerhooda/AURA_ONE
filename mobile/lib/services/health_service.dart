@@ -16,6 +16,6 @@ class HealthService {
   }
 
   Stream<double> get heartRateStream async* {
-    yield* Stream.periodic(Duration(seconds: 1), (i) => 70.0 + (i % 5));
+    yield* Stream.periodic(const Duration(seconds: 1), (i) => 70.0 + (i % 5));
   }
 }

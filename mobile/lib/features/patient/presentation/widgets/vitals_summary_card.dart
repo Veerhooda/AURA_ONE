@@ -42,7 +42,7 @@ class VitalsSummaryCard extends StatelessWidget {
                 child: Icon(icon, color: color, size: 20),
               ),
               const Spacer(),
-              Icon(CupertinoIcons.graph_circle, color: AppColors.textSecondary, size: 16),
+              const Icon(CupertinoIcons.graph_circle, color: AppColors.textSecondary, size: 16),
             ],
           ),
           const Spacer(),

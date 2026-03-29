@@ -154,7 +154,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                         height: 72,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: LinearGradient(
+                          gradient: const LinearGradient(
                             colors: [AppColors.primary, AppColors.primaryLight],
                           ),
                           boxShadow: [
@@ -221,7 +221,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                       // Login Button
                       Container(
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
+                          gradient: const LinearGradient(
                             colors: [AppColors.primary, AppColors.primaryLight],
                           ),
                           borderRadius: BorderRadius.circular(16),

@@ -43,7 +43,7 @@ class _AuraAssistantButtonState extends State<AuraAssistantButton> with SingleTi
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
+              colors: const [
                 AppColors.primary,
                 AppColors.accent,
               ],
